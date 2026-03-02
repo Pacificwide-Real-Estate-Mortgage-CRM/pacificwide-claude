@@ -2,6 +2,8 @@
 
 Distribute team `.claude/` config to any repo. One command to sync agents, rules, and skills across all Pacificwide projects — with automatic stack detection.
 
+> **📁 Browse config →** [github.com/.../config](https://github.com/Pacificwide-Real-Estate-Mortgage-CRM/pacificwide-claude/tree/main/config) — agents, rules, skills, stack configs
+
 ## Install
 
 ```bash
