@@ -549,13 +549,14 @@ FE test: "renders correctly with { name, email }"   → verifies UI with expecte
 
 ### Setup (auto on `pacificwide-claude init`)
 
-`.mcp.json.example` is copied to `.claude/.mcp.json` on first `init`. Contains pre-configured MCPs:
+`.mcp.json.example` is copied to `.mcp.json` (project root) on first `init`. Contains pre-configured MCPs:
 
 ```json
 {
   "mcpServers": {
-    "figma": { "type": "http", "url": "https://mcp.figma.com/mcp" },
-    "notion": { "type": "http", "url": "https://mcp.notion.com/mcp" }
+    "figma":    { "type": "http", "url": "https://mcp.figma.com/mcp" },
+    "notion":   { "type": "http", "url": "https://mcp.notion.com/mcp" },
+    "context7": { "command": "npx", "args": ["-y", "@upstash/context7-mcp"] }
   }
 }
 ```
@@ -564,11 +565,13 @@ FE test: "renders correctly with { name, email }"   → verifies UI with expecte
 1. Open Claude Code in the project
 2. Type `/mcp` → select `figma` → **Authenticate** → Allow access
 3. Type `/mcp` → select `notion` → **Authenticate** → Allow access
+4. Context7 — no auth needed, auto-connects via npx
 
 Or add via CLI:
 ```bash
 claude mcp add --transport http figma https://mcp.figma.com/mcp
 claude mcp add --transport http notion https://mcp.notion.com/mcp
+claude mcp add context7 -- npx -y @upstash/context7-mcp
 ```
 
 ### Figma MCP in workflow

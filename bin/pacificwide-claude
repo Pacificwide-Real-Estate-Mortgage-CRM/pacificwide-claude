@@ -122,10 +122,13 @@ check_cli_installed() {
   fi
 }
 
-# MCP servers to register — name:url pairs
+# MCP servers to register — "name|type|config" format
+# type=http  → config is URL:  claude mcp add --transport http <name> <url>
+# type=npx   → config is pkg:  claude mcp add <name> -- npx -y <pkg>
 MCP_SERVERS=(
-  "figma:https://mcp.figma.com/mcp"
-  "notion:https://mcp.notion.com/mcp"
+  "figma|http|https://mcp.figma.com/mcp"
+  "notion|http|https://mcp.notion.com/mcp"
+  "context7|npx|@upstash/context7-mcp"
 )
 
 setup_mcp_servers() {
@@ -142,31 +145,48 @@ setup_mcp_servers() {
   local skipped=0
 
   for entry in "${MCP_SERVERS[@]}"; do
-    local name="${entry%%:*}"
-    local url="${entry#*:}"
+    local name="${entry%%|*}"
+    local rest="${entry#*|}"
+    local type="${rest%%|*}"
+    local config="${rest#*|}"
 
-    # Check if already registered (claude mcp list output contains the name)
-    if claude mcp list 2>/dev/null | grep -q "$name"; then
+    # Check if already registered
+    if claude mcp list 2>/dev/null | grep -q "^${name}"; then
       skipped=$((skipped + 1))
+      continue
+    fi
+
+    local ok=false
+    if [[ "$type" == "http" ]]; then
+      if claude mcp add --transport http "$name" "$config" 2>/dev/null; then
+        ok=true
+      fi
+    elif [[ "$type" == "npx" ]]; then
+      if claude mcp add "$name" -- npx -y "$config" 2>/dev/null; then
+        ok=true
+      fi
+    fi
+
+    if [[ "$ok" == true ]]; then
+      success "Added MCP: ${name} (${type})"
+      added=$((added + 1))
     else
-      if claude mcp add --transport http "$name" "$url" 2>/dev/null; then
-        success "Added MCP: ${name} (${url})"
-        added=$((added + 1))
+      if [[ "$type" == "http" ]]; then
+        warn "Failed to add MCP: ${name}. Add manually: claude mcp add --transport http ${name} ${config}"
       else
-        warn "Failed to add MCP: ${name}. Add manually: claude mcp add --transport http ${name} ${url}"
+        warn "Failed to add MCP: ${name}. Add manually: claude mcp add ${name} -- npx -y ${config}"
       fi
     fi
   done
 
-  if [[ $added -gt 0 || $skipped -gt 0 ]]; then
-    echo -e "  ${CYAN}${added}${NC} MCP servers added, ${CYAN}${skipped}${NC} already configured"
-  fi
+  echo -e "  ${CYAN}${added}${NC} MCP servers added, ${CYAN}${skipped}${NC} already configured"
 
   if [[ $added -gt 0 ]]; then
     echo ""
-    info "MCP servers added. To authenticate:"
+    info "MCP servers added. To authenticate HTTP MCPs:"
     echo -e "  1. Open Claude Code in this project"
     echo -e "  2. Type ${BOLD}/mcp${NC} → select server → ${BOLD}Authenticate${NC} → Allow access"
+    echo -e "  (context7 connects automatically — no auth needed)"
   fi
 }
 
@@ -479,22 +499,25 @@ cmd_doctor() {
   # 9. .mcp.json exists at project root with required MCPs
   echo -n "  .mcp.json (project root)... "
   if [[ -f ".mcp.json" ]]; then
-    local has_notion=false
-    local has_figma=false
+    local has_notion=false has_figma=false has_context7=false
     grep -q '"notion"' ".mcp.json" 2>/dev/null && has_notion=true
     grep -q '"figma"' ".mcp.json" 2>/dev/null && has_figma=true
+    grep -q '"context7"' ".mcp.json" 2>/dev/null && has_context7=true
 
-    if [[ "$has_notion" == true && "$has_figma" == true ]]; then
-      echo -e "${GREEN}PASS${NC} (notion + figma)"
+    local missing=()
+    [[ "$has_notion" == false ]] && missing+=("notion")
+    [[ "$has_figma" == false ]] && missing+=("figma")
+    [[ "$has_context7" == false ]] && missing+=("context7")
+
+    if [[ ${#missing[@]} -eq 0 ]]; then
+      echo -e "${GREEN}PASS${NC} (notion + figma + context7)"
       pass=$((pass + 1))
-    elif [[ "$has_notion" == true ]]; then
-      echo -e "${YELLOW}WARN${NC} (notion ✓, figma missing — add figma MCP for design workflow)"
-      fail=$((fail + 1))
-    elif [[ "$has_figma" == true ]]; then
-      echo -e "${YELLOW}WARN${NC} (figma ✓, notion missing — add notion MCP for ticket workflow)"
-      fail=$((fail + 1))
     else
-      echo -e "${YELLOW}WARN${NC} (no figma or notion MCP configured)"
+      local present=()
+      [[ "$has_notion" == true ]] && present+=("notion ✓")
+      [[ "$has_figma" == true ]] && present+=("figma ✓")
+      [[ "$has_context7" == true ]] && present+=("context7 ✓")
+      echo -e "${YELLOW}WARN${NC} (missing: ${missing[*]} — run ${BOLD}pacificwide-claude mcp${NC})"
       fail=$((fail + 1))
     fi
   else
@@ -695,7 +718,7 @@ ${BOLD}COMMANDS${NC}
   update [--stack=<name>] Pull latest config and sync to .claude/
   doctor                  Check setup, environment, and stack
   list [category]         List config (agents|rules|skills|stacks|all)
-  mcp                     Register MCP servers (Figma, Notion) with Claude Code
+  mcp                     Register MCP servers (Figma, Notion, Context7) with Claude Code
   reset                   Remove .claude/ and re-initialize (preserves .env)
   self-update             Update the CLI itself
   version                 Show version
