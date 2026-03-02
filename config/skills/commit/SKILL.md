@@ -128,12 +128,10 @@ Validate message:
 **Hotfix tag:** If on a `hotfix/` branch, prefix with `[hotfix]`:
 - `[hotfix] fix(auth): patch token expiry vulnerability`
 
-Create commit with Co-Authored-By footer:
+Create commit:
 ```bash
 git commit -m "$(cat <<'EOF'
 feat(deal): add commission calculation for team leads
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```
@@ -274,7 +272,7 @@ All PRs ready for team review:
 - NEVER commit `.env` files, API keys, database credentials, or secrets
 - NEVER use `git add .` or `git add -A` - add specific files
 - NEVER commit directly to `master` or `main` branch
-- ALWAYS include Co-Authored-By footer
+- Do NOT include Co-Authored-By or AI references in commits
 - ALWAYS push and create PR (don't ask — this is the standard workflow)
 - One commit per logical change, not one giant commit
 - Keep commits focused on actual code changes (no unrelated formatting/refactors unless that's the commit's purpose)

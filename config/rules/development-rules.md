@@ -70,8 +70,8 @@
 
 - **Branch**: `type/description` (e.g., `feature/oauth-login`, `fix/deal-calculation`)
 - **Commit types**: feat, fix, docs, refactor, test, ci, chore, perf
-- **Commit format**: `type(scope): description` with Co-Authored-By footer
-- Include `Co-Authored-By: Claude <noreply@anthropic.com>` in commit footer
+- **Commit format**: `type(scope): description`
+- Do NOT include Co-Authored-By or AI references in commits
 
 ## Team Workflow
 
