@@ -71,17 +71,18 @@ After reading BOTH the spec AND the codebase, check for:
 **Branch naming:**
 ```bash
 # From Notion ticket: extract ticket ID + generate slug
-git checkout -b feat/TICKET-{id}/{short-slug}
+git checkout -b feature/{id}-{short-slug}
 
 # Examples:
-git checkout -b feat/TICKET-123/user-profile-api     # BE
-git checkout -b feat/TICKET-123/user-profile-ui       # FE
-git checkout -b fix/TICKET-456/payment-timeout        # Bug fix
+git checkout -b feature/123-user-profile-api     # feature (BE)
+git checkout -b feature/123-user-profile-ui      # feature (FE)
+git checkout -b fix/456-payment-timeout          # bug fix
+git checkout -b chore/upgrade-next-15            # chore (no ticket)
 ```
 
-**Determine type from ticket:** feature → `feat/`, bug → `fix/`, refactor → `refactor/`
+**Determine type from ticket:** feature → `feature/`, bug → `fix/`, hotfix → `hotfix/`, chore → `chore/`
 
-If no ticket ID available, use descriptive slug only: `feat/user-profile-api`
+If no ticket ID available, use descriptive slug only: `feature/user-profile-api`
 
 ### Step 6: Create the plan file
 
@@ -95,7 +96,7 @@ Also display the plan in the conversation.
 
 **Ticket:** [link if provided]
 **Spec:** [link to Document]
-**Branch:** `feat/TICKET-123/slug`
+**Branch:** `feature/123-slug`
 **Stack:** [current stack: nestjs/nextjs/react-native]
 **Cross-stack:** [Yes (BE + FE) / No]
 **Created:** [date]

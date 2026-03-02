@@ -153,28 +153,45 @@ git push origin $(git rev-parse --abbrev-ref HEAD)
 
 Determine PR details:
 1. **Title:** Use commit message subject (without type prefix for readability), or plan title
-2. **Base branch:** `main` (or project default)
-3. **Body:** Generate from plan context + changes summary
+2. **Base branch:** Read from `.claude/rules/stack-rules.md` → `## Git → Base branch`. Default: `dev`
+3. **Body:** Use PR template below — match team PR format
 4. **Labels:** Add based on branch prefix:
-   - `feat/` → no special label
+   - `feature/` → no special label
    - `fix/` → `bug`
    - `hotfix/` → `bug`, `hotfix`
 
 ```bash
 gh pr create --title "PR title" --body "$(cat <<'EOF'
-## Summary
+## What changed
 - [1-3 bullet points of what changed]
 
-## Ticket
-[Notion ticket link if available]
+## Why
+- Ticket: [Notion ticket link if available]
 
-## Test plan
+## Type
+- [ ] Feature
+- [ ] Bug fix
+- [ ] Refactor
+- [ ] Chore
+
+## Testing
 - [ ] Unit tests pass
 - [ ] Build succeeds
-- [ ] [specific manual verification steps]
+- [ ] Manual testing done
+
+## Screenshots / Video (required for bug fixes)
+Before | After
+
+## Checklist
+- [ ] No console.log or debug code left
+- [ ] No hardcoded secrets or API keys
+- [ ] Conventional commit format used
+- [ ] PR link added to Notion ticket
 EOF
-)" --base main
+)" --base dev
 ```
+
+> **Note for bug fix PRs:** Remind the user to attach screenshot/video proof to the PR comment after creation (required by team policy).
 
 **If PR already exists** (e.g., additional commits on same branch):
 ```bash

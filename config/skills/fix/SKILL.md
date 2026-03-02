@@ -107,10 +107,10 @@ If `$ARGUMENTS` is just a description:
 **Branch naming:**
 ```bash
 # Regular bug fix
-git checkout -b fix/TICKET-{id}/{short-slug}
+git checkout -b fix/{id}-{short-slug}
 
-# Hotfix (production emergency) — branch from main
-git checkout main && git pull && git checkout -b hotfix/TICKET-{id}/{short-slug}
+# Hotfix (production emergency) — branch from master
+git checkout master && git pull && git checkout -b hotfix/{id}-{short-slug}
 ```
 
 **Determine type:**
@@ -312,7 +312,7 @@ For production emergencies that need immediate deployment.
 
 ### Hotfix steps
 
-1. **Branch from main:** `git checkout main && git pull && git checkout -b hotfix/TICKET-{id}/{slug}`
+1. **Branch from master:** `git checkout master && git pull && git checkout -b hotfix/{id}-{slug}`
 2. **Minimal fix only:** Fix the immediate issue, nothing else
 3. **Regression test:** Still required, but keep it focused
 4. **Verify:** Build + test must pass

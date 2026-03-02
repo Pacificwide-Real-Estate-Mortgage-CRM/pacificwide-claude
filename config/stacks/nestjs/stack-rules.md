@@ -11,6 +11,12 @@
 - **Linter**: ESLint + Prettier
 - **API Docs**: Swagger (`@nestjs/swagger`)
 
+## Git
+
+- **Base branch:** `dev` (feature/* and fix/* PRs target `dev`, not main/master)
+- **Branch naming:** `feature/{ticket}-{slug}`, `fix/{ticket}-{slug}`, `hotfix/{ticket}-{slug}`
+- **Hotfix flow:** Branch from `master` → PR directly to `master` → cherry-pick to `dev`
+
 ## Commands
 
 ```bash
