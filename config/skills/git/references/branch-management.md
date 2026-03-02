@@ -2,25 +2,27 @@
 
 ## Naming Convention
 
-**Format:** `<type>/<descriptive-name>`
+**Format:** `<type>/{ticket}-{slug}` (ticket ID required when available)
 
 | Type | Purpose | Example |
 |------|---------|---------|
-| `feature/` | New features | `feature/oauth-login` |
-| `fix/` | Bug fixes | `fix/db-timeout` |
+| `feature/` | New features | `feature/123-oauth-login` |
+| `fix/` | Bug fixes | `fix/456-db-timeout` |
 | `refactor/` | Code restructure | `refactor/api-cleanup` |
 | `docs/` | Documentation | `docs/api-reference` |
 | `test/` | Test improvements | `test/integration-suite` |
 | `chore/` | Maintenance | `chore/deps-update` |
-| `hotfix/` | Production fixes | `hotfix/payment-crash` |
+| `hotfix/` | Production fixes | `hotfix/789-payment-crash` |
+
+> If no ticket ID: use descriptive slug only (`feature/oauth-login`)
 
 ## Branch Lifecycle
 
 ### Create
 ```bash
-git checkout main
-git pull origin main
-git checkout -b feature/new-feature
+git checkout dev
+git pull origin dev
+git checkout -b feature/123-new-feature
 ```
 
 ### During Development
@@ -28,27 +30,27 @@ git checkout -b feature/new-feature
 # Regular commits
 git add <files> && git commit -m "feat(scope): description"
 
-# Stay current with main
+# Stay current with dev
 git fetch origin
-git rebase origin/main
+git rebase origin/dev
 ```
 
 ### Before Merge
 ```bash
 # Push final state
-git push origin feature/new-feature
+git push origin feature/123-new-feature
 
 # Or after rebase (feature branches only)
-git push -f origin feature/new-feature
+git push -f origin feature/123-new-feature
 ```
 
 ### After Merge
 ```bash
 # Delete local
-git branch -d feature/new-feature
+git branch -d feature/123-new-feature
 
 # Delete remote
-git push origin --delete feature/new-feature
+git push origin --delete feature/123-new-feature
 ```
 
 ## Branch Strategies

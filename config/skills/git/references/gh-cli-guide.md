@@ -12,10 +12,10 @@ gh auth logout       # Logout
 ### Create PR
 ```bash
 # Basic
-gh pr create --base main --head feature-branch --title "feat: add login" --body "Summary"
+gh pr create --base dev --head feature-branch --title "feat: add login" --body "Summary"
 
 # With HEREDOC body
-gh pr create --base main --title "feat(auth): add OAuth" --body "$(cat <<'EOF'
+gh pr create --base dev --title "feat(auth): add OAuth" --body "$(cat <<'EOF'
 ## Summary
 - Added OAuth2 provider support
 - Implemented token refresh

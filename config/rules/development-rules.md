@@ -68,7 +68,7 @@
 
 ## Git Conventions
 
-- **Branch**: `type/description` (e.g., `feature/oauth-login`, `fix/deal-calculation`)
+- **Branch**: `type/{ticket}-{slug}` (e.g., `feature/123-oauth-login`, `fix/456-deal-calculation`, `hotfix/789-payment-crash`)
 - **Commit types**: feat, fix, docs, refactor, test, ci, chore, perf
 - **Commit format**: `type(scope): description`
 - Do NOT include Co-Authored-By or AI references in commits
