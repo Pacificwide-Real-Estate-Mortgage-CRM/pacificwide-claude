@@ -188,7 +188,7 @@ Before | After
 - [ ] Conventional commit format used
 - [ ] PR link added to Notion ticket
 EOF
-)" --base dev
+)" --base dev --reviewer t-code4change
 ```
 
 > **Note for bug fix PRs:** Remind the user to attach screenshot/video proof to the PR comment after creation (required by team policy).
@@ -206,7 +206,7 @@ gh pr view --json number 2>/dev/null
 
 **Hotfix PR:** Add `[HOTFIX]` prefix to title and request expedited review:
 ```bash
-gh pr create --title "[HOTFIX] Fix token expiry vulnerability" --body "..." --label "hotfix,bug"
+gh pr create --title "[HOTFIX] Fix token expiry vulnerability" --body "..." --label "hotfix,bug" --reviewer t-code4change
 ```
 
 ---
