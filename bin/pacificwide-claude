@@ -15,8 +15,8 @@ META_FILE="${CLAUDE_DIR}/.pacificwide-meta.json"
 STACKS_DIR="${CONFIG_SRC}/stacks"
 AVAILABLE_STACKS=("nestjs" "nextjs" "react-native")
 
-# Protected files — never overwritten by update/init
-PROTECTED_FILES=(".env" "settings.local.json" ".mcp.json" ".pacificwide-meta.json")
+# Protected files inside .claude/ — never overwritten by update/init
+PROTECTED_FILES=(".env" "settings.local.json" ".pacificwide-meta.json")
 
 # Colors
 RED='\033[0;31m'
@@ -270,10 +270,18 @@ cmd_init() {
     success "Created .claude/.env from template"
   fi
 
-  # Copy .mcp.json.example if exists and .mcp.json doesn't
-  if [[ -f "${CLI_DIR}/.mcp.json.example" && ! -f "${CLAUDE_DIR}/.mcp.json" ]]; then
-    cp "${CLI_DIR}/.mcp.json.example" "${CLAUDE_DIR}/.mcp.json"
-    success "Created .claude/.mcp.json from template"
+  # Copy .mcp.json.example to project root (Claude Code reads .mcp.json at project root, not inside .claude/)
+  if [[ -f "${CLI_DIR}/.mcp.json.example" && ! -f ".mcp.json" ]]; then
+    cp "${CLI_DIR}/.mcp.json.example" ".mcp.json"
+    success "Created .mcp.json (project root)"
+  fi
+
+  # Migrate: if old .claude/.mcp.json exists but root doesn't, move it
+  if [[ -f "${CLAUDE_DIR}/.mcp.json" && ! -f ".mcp.json" ]]; then
+    mv "${CLAUDE_DIR}/.mcp.json" ".mcp.json"
+    success "Migrated .claude/.mcp.json → .mcp.json (project root)"
+  elif [[ -f "${CLAUDE_DIR}/.mcp.json" && -f ".mcp.json" ]]; then
+    rm -f "${CLAUDE_DIR}/.mcp.json"
   fi
 
   # Write meta
@@ -468,13 +476,13 @@ cmd_doctor() {
     pass=$((pass + 1))
   fi
 
-  # 9. .mcp.json exists with required MCPs
-  echo -n "  .claude/.mcp.json... "
-  if [[ -f "${CLAUDE_DIR}/.mcp.json" ]]; then
+  # 9. .mcp.json exists at project root with required MCPs
+  echo -n "  .mcp.json (project root)... "
+  if [[ -f ".mcp.json" ]]; then
     local has_notion=false
     local has_figma=false
-    grep -q '"notion"' "${CLAUDE_DIR}/.mcp.json" 2>/dev/null && has_notion=true
-    grep -q '"figma"' "${CLAUDE_DIR}/.mcp.json" 2>/dev/null && has_figma=true
+    grep -q '"notion"' ".mcp.json" 2>/dev/null && has_notion=true
+    grep -q '"figma"' ".mcp.json" 2>/dev/null && has_figma=true
 
     if [[ "$has_notion" == true && "$has_figma" == true ]]; then
       echo -e "${GREEN}PASS${NC} (notion + figma)"
@@ -602,7 +610,7 @@ cmd_reset() {
     exit 0
   fi
 
-  # Backup protected files
+  # Backup protected files inside .claude/
   local backup_dir
   backup_dir="$(mktemp -d)"
   local backed_up=()
@@ -615,6 +623,12 @@ cmd_reset() {
     fi
   done
 
+  # Backup .mcp.json at project root (not inside .claude/)
+  if [[ -f ".mcp.json" ]]; then
+    cp ".mcp.json" "${backup_dir}/.mcp.json"
+    backed_up+=(".mcp.json (root)")
+  fi
+
   if [[ ${#backed_up[@]} -gt 0 ]]; then
     info "Backed up protected files: ${backed_up[*]}"
   fi
@@ -626,11 +640,19 @@ cmd_reset() {
   # Re-init
   cmd_init
 
-  # Restore backups
-  for file in "${backed_up[@]}"; do
-    cp "${backup_dir}/${file}" "${CLAUDE_DIR}/${file}"
-    success "Restored ${file}"
+  # Restore backups (inside .claude/)
+  for file in "${PROTECTED_FILES[@]}"; do
+    if [[ -f "${backup_dir}/${file}" ]]; then
+      cp "${backup_dir}/${file}" "${CLAUDE_DIR}/${file}"
+      success "Restored ${file}"
+    fi
   done
+
+  # Restore .mcp.json at project root
+  if [[ -f "${backup_dir}/.mcp.json" ]]; then
+    cp "${backup_dir}/.mcp.json" ".mcp.json"
+    success "Restored .mcp.json (root)"
+  fi
 
   rm -rf "$backup_dir"
   echo ""
@@ -704,9 +726,9 @@ ${BOLD}EXAMPLES${NC}
   pacificwide-claude list
 
 ${BOLD}PROTECTED FILES${NC} (never overwritten)
+  .mcp.json                      (project root — MCP server config)
   .claude/.env
   .claude/settings.local.json
-  .claude/.mcp.json
   .claude/.pacificwide-meta.json
 
 EOF

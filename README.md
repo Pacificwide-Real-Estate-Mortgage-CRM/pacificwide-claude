@@ -147,9 +147,9 @@ Or add manually: `claude mcp add --transport http figma https://mcp.figma.com/mc
 
 These files are **never overwritten** by `init`, `update`, or `reset`:
 
+- `.mcp.json` — MCP server configuration (project root — Claude Code reads from here)
 - `.claude/.env` — Local environment variables
 - `.claude/settings.local.json` — Local Claude settings
-- `.claude/.mcp.json` — MCP server configuration
 - `.claude/.pacificwide-meta.json` — Sync metadata (updated, not overwritten)
 
 ## Team workflow
