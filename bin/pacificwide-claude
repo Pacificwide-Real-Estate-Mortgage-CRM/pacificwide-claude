@@ -131,6 +131,43 @@ MCP_SERVERS=(
   "context7|npx|@upstash/context7-mcp"
 )
 
+sync_mcp_json() {
+  # Merge missing MCP entries into .mcp.json using node (already a project requirement)
+  [[ ! -f ".mcp.json" ]] && return
+  ! command -v node &>/dev/null && return
+
+  for entry in "${MCP_SERVERS[@]}"; do
+    local name="${entry%%|*}"
+    local rest="${entry#*|}"
+    local type="${rest%%|*}"
+    local config="${rest#*|}"
+
+    # Skip if already in .mcp.json
+    if grep -q "\"${name}\"" ".mcp.json" 2>/dev/null; then
+      continue
+    fi
+
+    # Add missing entry via node
+    if [[ "$type" == "http" ]]; then
+      node -e "
+        const fs = require('fs');
+        const d = JSON.parse(fs.readFileSync('.mcp.json', 'utf8'));
+        if (!d.mcpServers) d.mcpServers = {};
+        d.mcpServers['${name}'] = { type: 'http', url: '${config}' };
+        fs.writeFileSync('.mcp.json', JSON.stringify(d, null, 2) + '\n');
+      " 2>/dev/null && success "Added ${name} to .mcp.json"
+    elif [[ "$type" == "npx" ]]; then
+      node -e "
+        const fs = require('fs');
+        const d = JSON.parse(fs.readFileSync('.mcp.json', 'utf8'));
+        if (!d.mcpServers) d.mcpServers = {};
+        d.mcpServers['${name}'] = { command: 'npx', args: ['-y', '${config}'] };
+        fs.writeFileSync('.mcp.json', JSON.stringify(d, null, 2) + '\n');
+      " 2>/dev/null && success "Added ${name} to .mcp.json"
+    fi
+  done
+}
+
 setup_mcp_servers() {
   if ! command -v claude &>/dev/null; then
     warn "Claude Code CLI not found. Skipping MCP setup."
@@ -150,7 +187,7 @@ setup_mcp_servers() {
     local type="${rest%%|*}"
     local config="${rest#*|}"
 
-    # Check if already registered
+    # Check if already registered in claude mcp list
     if claude mcp list 2>/dev/null | grep -q "^${name}"; then
       skipped=$((skipped + 1))
       continue
@@ -180,6 +217,9 @@ setup_mcp_servers() {
   done
 
   echo -e "  ${CYAN}${added}${NC} MCP servers added, ${CYAN}${skipped}${NC} already configured"
+
+  # Always sync .mcp.json to ensure all entries are present (even if already registered)
+  sync_mcp_json
 
   if [[ $added -gt 0 ]]; then
     echo ""
