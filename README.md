@@ -52,6 +52,24 @@ pacificwide-claude list skills    # Show skills only
 pacificwide-claude list stacks    # Show available stacks
 ```
 
+### Initialize project docs
+
+```bash
+pacificwide-claude docs init
+```
+
+Creates `docs/` with stub templates (`code-standards.md`, `codebase-summary.md`, `system-architecture.md`, `deployment-guide.md`). Skips files that already exist.
+
+Then run `/docs init` in Claude Code to have AI analyze your codebase and fill in the stubs automatically.
+
+**Docs workflow:**
+```
+pacificwide-claude docs init   → create stubs
+/docs init                     → AI fills docs from codebase analysis
+/docs update                   → update after each feature
+/docs summarize                → refresh codebase-summary.md only
+```
+
 ### Reset
 
 ```bash
@@ -101,12 +119,13 @@ config/
 │   └── ui-ux-designer.md
 ├── rules/                           # Shared rules (→ .claude/rules/)
 │   └── development-rules.md
-├── skills/                          # 16 shared skills (→ .claude/skills/)
+├── skills/                          # 17 shared skills (→ .claude/skills/)
 │   ├── plan/                        # /plan — task planning
 │   ├── implement/                   # /implement — feature implementation
 │   ├── fix/                         # /fix — bug fixing
 │   ├── review/                      # /review — code review
 │   ├── commit/                      # /commit — commit with checks
+│   ├── docs/                        # /docs — generate + manage project docs
 │   ├── docs-seeker/                 # Library docs lookup
 │   ├── sequential-thinking/         # Systematic analysis
 │   ├── problem-solving/             # When stuck

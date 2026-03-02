@@ -5,7 +5,7 @@ set -euo pipefail
 # pacificwide-claude — Distribute team .claude/ config to any repo
 # ─────────────────────────────────────────────────────────────────────────────
 
-VERSION="1.1.0"
+VERSION="1.2.0"
 CLI_DIR="${HOME}/.pacificwide-claude"
 CONFIG_SRC="${CLI_DIR}/config"
 CLAUDE_DIR=".claude"
@@ -727,6 +727,71 @@ cmd_mcp() {
   setup_mcp_servers
 }
 
+cmd_docs() {
+  check_cli_installed
+
+  local subcommand="${1:-init}"
+
+  case "$subcommand" in
+    init)
+      local docs_dir="docs"
+
+      # Check if docs/ already has content
+      if [[ -d "$docs_dir" ]]; then
+        local existing
+        existing="$(find "$docs_dir" -maxdepth 1 -name "*.md" | wc -l | tr -d ' ')"
+        if [[ "$existing" -gt 0 ]]; then
+          warn "docs/ already exists with ${existing} file(s)."
+          read -r -p "  Create stubs for missing files only? [Y/n] " answer
+          if [[ "$answer" =~ ^[Nn]$ ]]; then
+            info "Aborted."
+            exit 0
+          fi
+        fi
+      fi
+
+      mkdir -p "$docs_dir"
+
+      local templates_dir="${CLI_DIR}/config/docs-templates"
+      if [[ ! -d "$templates_dir" ]]; then
+        error "Doc templates not found at ${templates_dir}"
+        echo "  Run: pacificwide-claude self-update"
+        exit 1
+      fi
+
+      local created=0
+      local skipped=0
+
+      while IFS= read -r -d '' tmpl; do
+        local filename
+        filename="$(basename "$tmpl")"
+        local dest="${docs_dir}/${filename}"
+
+        if [[ -f "$dest" ]]; then
+          skipped=$((skipped + 1))
+        else
+          cp "$tmpl" "$dest"
+          success "Created ${dest}"
+          created=$((created + 1))
+        fi
+      done < <(find "$templates_dir" -maxdepth 1 -name "*.md" -print0)
+
+      echo ""
+      success "docs/ initialized: ${created} stubs created, ${skipped} already exist"
+      echo ""
+      echo -e "  ${BOLD}Next step (AI-powered):${NC}"
+      echo -e "  Open Claude Code in this project and run: ${BOLD}/docs init${NC}"
+      echo -e "  This will analyze your codebase and fill in the docs automatically."
+      ;;
+
+    *)
+      error "Unknown subcommand: ${subcommand}"
+      echo "  Usage: pacificwide-claude docs init"
+      exit 1
+      ;;
+  esac
+}
+
 cmd_self_update() {
   check_cli_installed
 
@@ -756,6 +821,7 @@ ${BOLD}USAGE${NC}
 ${BOLD}COMMANDS${NC}
   init [--stack=<name>]   Initialize .claude/ with team config (auto-detects stack)
   update [--stack=<name>] Pull latest config and sync to .claude/
+  docs [init]             Create docs/ stub templates (then run /docs init in Claude Code)
   doctor                  Check setup, environment, and stack
   list [category]         List config (agents|rules|skills|stacks|all)
   mcp                     Register MCP servers (Figma, Notion, Context7) with Claude Code
@@ -788,6 +854,15 @@ ${BOLD}EXAMPLES${NC}
   # See available skills and stacks
   pacificwide-claude list
 
+  # Create docs/ stub templates, then /docs init in Claude Code to fill them
+  pacificwide-claude docs init
+
+${BOLD}DOCS WORKFLOW${NC}
+  pacificwide-claude docs init   → creates stub templates in docs/
+  /docs init                     → Claude Code analyzes codebase and fills docs
+  /docs update                   → update docs after each feature implementation
+  /docs summarize                → refresh codebase-summary.md only
+
 ${BOLD}PROTECTED FILES${NC} (never overwritten)
   .mcp.json                      (project root — MCP server config)
   .claude/.env
@@ -808,6 +883,7 @@ main() {
     update)      cmd_update "$@" ;;
     doctor)      cmd_doctor "$@" ;;
     list)        cmd_list "$@" ;;
+    docs)        cmd_docs "$@" ;;
     mcp)         cmd_mcp "$@" ;;
     reset)       cmd_reset "$@" ;;
     self-update) cmd_self_update "$@" ;;
