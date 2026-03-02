@@ -1,11 +1,11 @@
 ---
 name: commit
-description: "Pre-commit checks + commit + update Notion. Runs lint/test, creates conventional commit, updates ticket status. Use after /review passes."
+description: "Pre-commit checks + commit + PR + Notion update. Runs lint/test, creates conventional commit, auto-creates PR, updates ticket. Use after /review passes."
 ---
 
-# /commit - Commit Changes
+# /commit - Commit & PR
 
-Create a commit with proper checks and update Notion ticket status.
+Create a commit with proper checks, push, auto-create PR, and update Notion ticket status.
 
 **Input:** Optional commit message via `$ARGUMENTS`, otherwise auto-generate
 
@@ -33,7 +33,7 @@ git rev-parse --abbrev-ref HEAD
   ERROR: Cannot commit directly to master branch.
   Create a feature branch first: git checkout -b type/description
   ```
-- **If on feature branch:** Proceed to verification.
+- **If on feature/fix/hotfix branch:** Proceed to verification.
 
 ---
 
@@ -125,11 +125,8 @@ Validate message:
 - Subject under 72 characters
 - Imperative mood ("add" not "added", "fix" not "fixed")
 
-**Deployment tags (optional):**
-- Add `[deploy]` prefix or suffix if commit should trigger immediate deployment:
-  - `[deploy] fix: critical payment encryption bug`
-  - `feat: add SMS templates [deploy]`
-- Only use for: hot-fixes, critical features, production issues
+**Hotfix tag:** If on a `hotfix/` branch, prefix with `[hotfix]`:
+- `[hotfix] fix(auth): patch token expiry vulnerability`
 
 Create commit with Co-Authored-By footer:
 ```bash
@@ -143,61 +140,130 @@ EOF
 
 ---
 
-### Step 7: Update Notion (if ticket exists)
+### Step 7: Push and create PR
 
-If plan file has a Notion ticket link:
-1. Use Notion MCP to read ticket's status field name and available options
-2. Attempt to update status to "Ready for Review" or "Done"
-3. **If field name or options differ:** Report to user instead of guessing:
-   ```
-   Commit successful. Could not auto-update Notion ticket.
-   Status field options: [list actual options]
-   Please update manually to: [appropriate status]
-   ```
-4. Add comment to ticket: "Committed in [commit hash]: [commit message]"
-
-If no ticket link in plan file, skip this step.
-
----
-
-### Step 8: Push to remote (optional)
-
-Ask user:
-```
-Commit created successfully. Do you want to push to remote now? (y/n)
-```
-
-**If yes:**
+**Push to remote:**
 ```bash
-# If branch already tracks remote
-git push origin $(git rev-parse --abbrev-ref HEAD)
-
 # If branch doesn't track remote yet (first push)
 git push -u origin $(git rev-parse --abbrev-ref HEAD)
+
+# If branch already tracks remote
+git push origin $(git rev-parse --abbrev-ref HEAD)
 ```
 
-**If no:**
+**Auto-create PR via `gh`:**
+
+Determine PR details:
+1. **Title:** Use commit message subject (without type prefix for readability), or plan title
+2. **Base branch:** `main` (or project default)
+3. **Body:** Generate from plan context + changes summary
+4. **Labels:** Add based on branch prefix:
+   - `feat/` → no special label
+   - `fix/` → `bug`
+   - `hotfix/` → `bug`, `hotfix`
+
+```bash
+gh pr create --title "PR title" --body "$(cat <<'EOF'
+## Summary
+- [1-3 bullet points of what changed]
+
+## Ticket
+[Notion ticket link if available]
+
+## Test plan
+- [ ] Unit tests pass
+- [ ] Build succeeds
+- [ ] [specific manual verification steps]
+EOF
+)" --base main
 ```
-You can push later with: git push origin <branch-name>
+
+**If PR already exists** (e.g., additional commits on same branch):
+```bash
+# Just push — PR updates automatically
+git push origin $(git rev-parse --abbrev-ref HEAD)
+```
+
+Check if PR exists before creating:
+```bash
+gh pr view --json number 2>/dev/null
+```
+
+**Hotfix PR:** Add `[HOTFIX]` prefix to title and request expedited review:
+```bash
+gh pr create --title "[HOTFIX] Fix token expiry vulnerability" --body "..." --label "hotfix,bug"
 ```
 
 ---
 
-### Step 9: Success output
+### Step 8: Update Notion ticket
 
-Print confirmation:
+**Read plan file or ticket link** to find the Notion ticket.
+
+**Always (if ticket exists):**
+1. Add commit comment:
+   ```
+   ✅ {stack} committed: {short_hash}
+   Branch: {branch_name}
+   PR: {pr_url}
+   ```
+2. Attempt to update ticket status to "Review" or appropriate status
+3. **If status field name or options differ:** Report to user instead of guessing
+
+**For cross-stack tasks:**
+- Check if ALL stacks listed in ticket's "Stacks" property have been committed
+- If current stack is the LAST stack: update status to "Review"
+- If other stacks remain: keep status as "In Progress" and add comment:
+  ```
+  ✅ {stack} committed: {short_hash}
+  PR: {pr_url}
+  ⏳ Waiting for: {remaining_stacks}
+  ```
+
+If no ticket link, skip this step.
+
+---
+
+### Step 9: Handoff
+
+**Single-stack task:**
 ```markdown
-## Commit Complete
+## Commit & PR Complete
 
 **Branch:** [branch-name]
 **Commit:** [commit hash and message]
-**Notion:** [Updated ticket #123 / No ticket linked / Update failed - see above]
-**Pushed:** [Yes / No]
+**PR:** [PR URL]
+**Notion:** [Updated ticket / No ticket / Update failed]
 
-**Next steps:**
-- Continue working: Make more changes and repeat /plan → /implement → /review → /commit
-- Create PR: Run `gh pr create` or use GitHub UI
-- Switch context: `git checkout other-branch`
+Done! PR is ready for team review.
+```
+
+**Cross-stack task (more stacks to go):**
+```markdown
+## Commit & PR Complete ({stack})
+
+**Branch:** [branch-name]
+**Commit:** [commit hash and message]
+**PR:** [PR URL]
+**Notion:** Posted stack completion. Waiting for: {remaining_stacks}
+
+Cross-stack next step:
+Switch to {next_stack} repo and run: /plan [same ticket URL]
+(or /fix [same ticket URL] for bug fixes)
+```
+
+**Cross-stack task (this is the last stack):**
+```markdown
+## Commit & PR Complete ({stack}) — All stacks done!
+
+**Branch:** [branch-name]
+**Commit:** [commit hash and message]
+**PR:** [PR URL]
+**Notion:** Updated status to Review. All stacks committed.
+
+All PRs ready for team review:
+- BE: [PR URL from Notion comment]
+- FE: [PR URL from Notion comment]
 ```
 
 ---
@@ -208,7 +274,10 @@ Print confirmation:
 - NEVER commit `.env` files, API keys, database credentials, or secrets
 - NEVER use `git add .` or `git add -A` - add specific files
 - NEVER commit directly to `master` or `main` branch
-- ALWAYS include Co-Authored-By footer with Claude model version
+- ALWAYS include Co-Authored-By footer
+- ALWAYS push and create PR (don't ask — this is the standard workflow)
 - One commit per logical change, not one giant commit
 - Keep commits focused on actual code changes (no unrelated formatting/refactors unless that's the commit's purpose)
+- **Cross-stack:** Post stack completion to Notion so other stacks know progress
+- **Hotfix PRs:** Add `[HOTFIX]` prefix and `hotfix` label for visibility
 - Follow `.claude/rules/development-rules.md` for git conventions

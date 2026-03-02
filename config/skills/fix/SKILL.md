@@ -1,6 +1,6 @@
 ---
 name: fix
-description: 'Fix bugs by reproducing, debugging, fixing, and testing. Use for bug fix tickets. Use: /fix [Notion ticket link or bug description]'
+description: 'Fix bugs by reproducing, debugging, fixing, and testing. Supports cross-stack and hotfix workflows. Use: /fix [Notion ticket link or bug description]'
 ---
 
 # /fix - Bug Fix
@@ -20,6 +20,7 @@ Fix bugs by reproducing the issue, finding root cause, implementing fix, and pre
 
 If `$ARGUMENTS` contains a Notion link:
 - Use Notion MCP to read the ticket properties and description
+- **Read the "Stacks" property** (multi-select: BE, FE, App) to determine scope
 - Look for: bug description, steps to reproduce, expected vs actual behavior, error messages
 - Read any linked documents or related tickets
 - **Images/Screenshots:** Notion MCP may not be able to read images. If the ticket mentions screenshots or you see image references:
@@ -43,7 +44,84 @@ If `$ARGUMENTS` is just a description:
 
 ---
 
-### Step 2: Read project context and locate the bug
+### Step 2: Detect stack and cross-stack scope
+
+**Detect current stack:** Read `package.json` to determine current repo's stack (nestjs/nextjs/react-native).
+
+**Determine scope from Notion "Stacks" property:**
+- **Single-stack** (Stacks = [BE] or [FE]): standard fix in current repo
+- **Cross-stack** (Stacks = [BE, FE] or [BE, FE, App]): determine root cause stack first
+- **No Stacks property**: infer from bug description, or ask user
+
+**For cross-stack bugs, also check Notion comments:**
+- If another stack already posted a fix or root cause analysis → reference it
+- If root cause is clearly in the other stack → report to user with recommendation
+
+---
+
+### Step 3: Determine root cause stack
+
+**Single-stack bug:** Skip this step, proceed to Step 4.
+
+**Cross-stack bug:** Analyze where the root cause likely is:
+
+| Symptom | Likely root cause |
+|---------|-------------------|
+| API returns wrong data | BE |
+| API returns error 4xx/5xx | BE (unless FE sends wrong request) |
+| UI displays wrong data | FE (if API response is correct) |
+| UI crashes or errors | FE |
+| Data not saving | Check both: FE request payload → BE handler |
+| Performance issue | Profile both, fix where bottleneck is |
+
+**If root cause is in CURRENT stack:** Proceed to Step 4.
+
+**If root cause is in OTHER stack:**
+1. Comment on Notion ticket with your analysis:
+   ```
+   🔍 Root cause analysis ({current_stack}):
+   Bug appears to originate in {other_stack}.
+   Evidence: [specific finding]
+   Suggested fix: [what needs to change in other stack]
+   ```
+2. Report to user:
+   ```
+   Root cause is in {other_stack}, not {current_stack}.
+   I've posted the analysis to the Notion ticket.
+   Switch to {other_stack} repo and run: /fix [same ticket URL]
+   ```
+3. STOP. Do not attempt to fix code in the wrong stack.
+
+**If root cause spans BOTH stacks:**
+- Fix the current stack's portion first
+- Note remaining work for the other stack in Notion comment
+
+---
+
+### Step 4: Create branch (if needed)
+
+**Check current branch:**
+- If already on a fix/hotfix branch for this ticket → skip
+- If on `main` or `master` → create branch
+
+**Branch naming:**
+```bash
+# Regular bug fix
+git checkout -b fix/TICKET-{id}/{short-slug}
+
+# Hotfix (production emergency) — branch from main
+git checkout main && git pull && git checkout -b hotfix/TICKET-{id}/{short-slug}
+```
+
+**Determine type:**
+- Regular bug → `fix/`
+- Production emergency → `hotfix/` (see Hotfix Workflow below)
+
+If no ticket ID available, use descriptive slug: `fix/payment-timeout`
+
+---
+
+### Step 5: Read project context and locate the bug
 
 - Read `docs/code-standards.md`, `docs/codebase-summary.md`, and `.claude/rules/stack-rules.md` for project context
 - Identify which module/files are likely involved based on the bug description
@@ -52,7 +130,7 @@ If `$ARGUMENTS` is just a description:
 
 ---
 
-### Step 3: Reproduce the bug
+### Step 6: Reproduce the bug
 
 **Attempt to reproduce locally:**
 
@@ -72,7 +150,7 @@ Use commands from `.claude/rules/stack-rules.md` for stack-specific tools.
 
 ---
 
-### Step 4: Debug and find root cause
+### Step 7: Debug and find root cause
 
 Use the `debugger` agent to investigate:
 
@@ -81,13 +159,13 @@ Debug the following issue:
 
 **Bug:** [description from ticket]
 
-**Reproduction steps:** [what you did in Step 3]
+**Reproduction steps:** [what you did in Step 6]
 
 **Observed behavior:** [actual result]
 
 **Expected behavior:** [from ticket]
 
-**Files involved:** [list from Step 2]
+**Files involved:** [list from Step 5]
 
 **Error messages/logs:** [if any]
 
@@ -101,9 +179,9 @@ Wait for the debugger agent to return:
 
 ---
 
-### Step 5: Implement the fix
+### Step 8: Implement the fix
 
-Based on the root cause from Step 4, implement the fix:
+Based on the root cause from Step 7, implement the fix:
 
 **Read the affected file(s) first:**
 - Understand the current logic and surrounding code
@@ -114,7 +192,7 @@ Based on the root cause from Step 4, implement the fix:
 - Preserve existing behavior for non-buggy cases
 - Add input validation if the bug was caused by invalid data
 - Add error handling if the bug was an unhandled exception
-- Follow project patterns (workspace filtering, transactions, error handling)
+- Follow project patterns from `.claude/rules/stack-rules.md`
 
 **Common fix patterns:**
 - Missing null checks: Add guards for nullable values
@@ -125,7 +203,7 @@ Based on the root cause from Step 4, implement the fix:
 
 ---
 
-### Step 6: Write regression test
+### Step 9: Write regression test
 
 **Critical:** Add a test to prevent this bug from reoccurring.
 
@@ -138,25 +216,14 @@ If test file exists, add a new test case:
 
 If no test file exists, create one following existing patterns in the module.
 
-**Test structure:**
-```typescript
-describe('Bug fix: [brief description]', () => {
-  it('should [expected behavior] when [bug scenario]', async () => {
-    // Arrange: set up the buggy scenario
-    // Act: call the method/component that had the bug
-    // Assert: verify it now behaves correctly
-  });
-});
-```
-
 ---
 
-### Step 7: Verify the fix
+### Step 10: Verify the fix
 
 Run build/lint/test commands from `.claude/rules/stack-rules.md`.
 
 **Verify the specific fix:**
-- Re-run the reproduction steps from Step 3
+- Re-run the reproduction steps from Step 6
 - Confirm the bug no longer occurs
 - Confirm expected behavior now happens
 
@@ -169,23 +236,31 @@ Do NOT proceed until all checks pass and the bug is verified fixed.
 
 ---
 
-### Step 8: Update Notion ticket
+### Step 11: Update Notion ticket
 
 If the ticket is from Notion:
-- Use Notion MCP to add a comment with:
-  - Root cause explanation (from Step 4)
-  - What was changed to fix it
-  - Regression test added (file path)
-- Set ticket status to "Ready for Review" or "Fixed"
-- If status field differs, report to user
+- Add comment with:
+  ```
+  🐛 Bug fix ({stack}):
+  Root cause: [one-line explanation]
+  Fix: [what was changed]
+  Regression test: [file path]
+  Branch: [branch name]
+  ```
+- If cross-stack and other stacks still need fixes:
+  ```
+  ⚠️ Cross-stack: {other_stack} portion still needs fixing.
+  See root cause analysis above.
+  ```
+- If status field name or options differ, report to user
 
 If no Notion ticket, skip this step.
 
 ---
 
-### Step 9: Handoff
+### Step 12: Handoff
 
-Print summary:
+**Single-stack fix:**
 ```markdown
 ## Bug Fix Complete
 
@@ -198,6 +273,77 @@ Print summary:
 Next: /review
 ```
 
+**Cross-stack fix (current stack done, other stacks remain):**
+```markdown
+## Bug Fix Complete ({stack})
+
+**Bug:** [brief description]
+**Root cause:** [one-line explanation]
+**Files changed:** [list]
+**Regression test:** [file path]
+
+Cross-stack: {other_stack} portion still needs fixing.
+After this stack: /review → /commit
+Then switch to {other_stack} repo and run: /fix [same ticket URL]
+```
+
+---
+
+## Hotfix Workflow
+
+For production emergencies that need immediate deployment.
+
+### When to use hotfix
+
+- Production is down or critically broken
+- Data corruption or security vulnerability
+- User explicitly says "hotfix" or "urgent"
+
+### Hotfix differences from regular fix
+
+| Aspect | Regular fix | Hotfix |
+|--------|------------|--------|
+| Branch from | feature branch or main | Always `main` |
+| Branch prefix | `fix/` | `hotfix/` |
+| Scope | Full investigation | Minimal fix only |
+| Review | Standard (2 approvers) | Expedited (1 approver) |
+| Deploy | Next release cycle | Immediate |
+| Follow-up | None needed | Post-mortem required |
+
+### Hotfix steps
+
+1. **Branch from main:** `git checkout main && git pull && git checkout -b hotfix/TICKET-{id}/{slug}`
+2. **Minimal fix only:** Fix the immediate issue, nothing else
+3. **Regression test:** Still required, but keep it focused
+4. **Verify:** Build + test must pass
+5. **Handoff:**
+   ```
+   ## Hotfix Ready
+
+   **Bug:** [description]
+   **Root cause:** [brief]
+   **Fix:** [what changed]
+   **Impact:** [what was affected]
+
+   Next: /review (expedited — 1 approver)
+   After merge: deploy immediately
+   ```
+6. **After merge:** Add post-mortem comment to Notion ticket:
+   ```
+   📝 Post-mortem:
+   - What happened: [description]
+   - Root cause: [why it happened]
+   - Fix applied: [what was changed]
+   - Prevention: [how to prevent recurrence]
+   ```
+
+### Cross-stack hotfix
+
+For hotfixes spanning multiple stacks, fix sequentially (not parallel):
+1. Fix BE first → /review → /commit → deploy
+2. Then fix FE → /review → /commit → deploy
+3. Each stack has its own hotfix branch from main
+
 ---
 
 ## Rules
@@ -208,6 +354,8 @@ Next: /review
 - **Root cause, not symptoms:** Fix the underlying cause, not just the visible symptom
 - **Verify the fix:** Re-run reproduction steps to confirm bug is gone
 - **Document in commit:** Commit message should reference bug ticket and explain what was fixed
+- **Cross-stack scope:** Only fix code in current stack. If root cause is in another stack, post analysis to Notion and stop
+- **Hotfix = minimal:** For hotfixes, fix only the immediate issue. Broader improvements go in a follow-up ticket
 - Use `debugger` agent for complex issues (can't find root cause after 15 minutes of investigation)
 - Use `tester` agent if regression test needs more comprehensive coverage analysis
 - Follow `.claude/rules/development-rules.md`
