@@ -70,15 +70,17 @@ After reading BOTH the spec AND the codebase, check for:
 
 **Branch naming:**
 ```bash
-# From Notion ticket: extract ticket ID + generate slug
-git checkout -b feature/{id}-{short-slug}
+# From Notion ticket: read the ticket's ID property (Unique ID, e.g., RRR-351)
+git checkout -b feature/RRR-351-{short-slug}
 
 # Examples:
-git checkout -b feature/123-user-profile-api     # feature (BE)
-git checkout -b feature/123-user-profile-ui      # feature (FE)
-git checkout -b fix/456-payment-timeout          # bug fix
-git checkout -b chore/upgrade-next-15            # chore (no ticket)
+git checkout -b feature/RRR-351-user-profile-api     # feature (BE)
+git checkout -b feature/RRR-351-user-profile-ui      # feature (FE)
+git checkout -b fix/RRR-351-payment-timeout          # bug fix
+git checkout -b chore/upgrade-next-15                # chore (no ticket)
 ```
+
+**Extract ticket ID:** Read the ticket's `ID` property (Notion Unique ID, e.g., `RRR-351`). Use it verbatim — never use the Notion page UUID from the URL.
 
 **Determine type from ticket:** feature → `feature/`, bug → `fix/`, hotfix → `hotfix/`, chore → `chore/`
 
@@ -96,7 +98,7 @@ Also display the plan in the conversation.
 
 **Ticket:** [link if provided]
 **Spec:** [link to Document]
-**Branch:** `feature/123-slug`
+**Branch:** `feature/RRR-351-slug`
 **Stack:** [current stack: nestjs/nextjs/react-native]
 **Cross-stack:** [Yes (BE + FE) / No]
 **Created:** [date]

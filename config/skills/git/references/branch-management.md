@@ -2,19 +2,19 @@
 
 ## Naming Convention
 
-**Format:** `<type>/{ticket}-{slug}` (ticket ID required when available)
+**Format:** `<type>/{notion-id}-{slug}` — use Notion Unique ID (e.g., `RRR-351`)
 
 | Type | Purpose | Example |
 |------|---------|---------|
-| `feature/` | New features | `feature/123-oauth-login` |
-| `fix/` | Bug fixes | `fix/456-db-timeout` |
+| `feature/` | New features | `feature/RRR-351-oauth-login` |
+| `fix/` | Bug fixes | `fix/RRR-456-db-timeout` |
 | `refactor/` | Code restructure | `refactor/api-cleanup` |
 | `docs/` | Documentation | `docs/api-reference` |
 | `test/` | Test improvements | `test/integration-suite` |
 | `chore/` | Maintenance | `chore/deps-update` |
-| `hotfix/` | Production fixes | `hotfix/789-payment-crash` |
+| `hotfix/` | Production fixes | `hotfix/RRR-789-payment-crash` |
 
-> If no ticket ID: use descriptive slug only (`feature/oauth-login`)
+> If no Notion ticket: use descriptive slug only (`feature/oauth-login`)
 
 ## Branch Lifecycle
 

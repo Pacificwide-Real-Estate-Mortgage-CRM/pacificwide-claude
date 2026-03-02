@@ -68,7 +68,7 @@
 
 ## Git Conventions
 
-- **Branch**: `type/{ticket}-{slug}` (e.g., `feature/123-oauth-login`, `fix/456-deal-calculation`, `hotfix/789-payment-crash`)
+- **Branch**: `type/{notion-id}-{slug}` — use Notion Unique ID (e.g., `feature/RRR-351-oauth-login`, `fix/RRR-456-deal-calculation`, `hotfix/RRR-789-payment-crash`)
 - **Commit types**: feat, fix, docs, refactor, test, ci, chore, perf
 - **Commit format**: `type(scope): description`
 - Do NOT include Co-Authored-By or AI references in commits

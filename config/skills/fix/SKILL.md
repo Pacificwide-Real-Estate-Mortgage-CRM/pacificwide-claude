@@ -106,12 +106,14 @@ If `$ARGUMENTS` is just a description:
 
 **Branch naming:**
 ```bash
-# Regular bug fix
-git checkout -b fix/{id}-{short-slug}
+# Regular bug fix — use Notion Unique ID (e.g., RRR-351)
+git checkout -b fix/RRR-351-{short-slug}
 
 # Hotfix (production emergency) — branch from master
-git checkout master && git pull && git checkout -b hotfix/{id}-{short-slug}
+git checkout master && git pull && git checkout -b hotfix/RRR-351-{short-slug}
 ```
+
+**Extract ticket ID from Notion:** Read the ticket's `ID` property (Unique ID, e.g., `RRR-351`). Use it verbatim as the branch prefix.
 
 **Determine type:**
 - Regular bug → `fix/`
