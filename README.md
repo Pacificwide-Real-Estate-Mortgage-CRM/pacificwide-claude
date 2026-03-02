@@ -19,7 +19,7 @@ cd your-project
 pacificwide-claude init
 ```
 
-Auto-detects your stack from `package.json` and copies shared config + stack-specific rules and skills into `.claude/`. Protected files (`.env`, `settings.local.json`, `.mcp.json`) are never overwritten.
+Auto-detects your stack from `package.json` and copies shared config + stack-specific rules and skills into `.claude/`. Pre-configured MCP servers (Figma, Notion) are set up automatically. Protected files (`.env`, `settings.local.json`, `.mcp.json`) are never overwritten.
 
 Override auto-detection:
 
@@ -129,6 +129,19 @@ config/
         ├── stack-rules.md
         └── skills/ (1 skill)
 ```
+
+## MCP servers
+
+Pre-configured via `.mcp.json.example` (copied to `.claude/.mcp.json` on first `init`):
+
+| MCP    | URL                          | Purpose                              |
+| ------ | ---------------------------- | ------------------------------------ |
+| Figma  | `https://mcp.figma.com/mcp`  | Read designs, extract tokens, gen code |
+| Notion | `https://mcp.notion.com/mcp` | Read tickets, update status, comments |
+
+**First-time auth:** Open Claude Code → `/mcp` → select server → Authenticate → Allow access.
+
+Or add manually: `claude mcp add --transport http figma https://mcp.figma.com/mcp`
 
 ## Protected files
 

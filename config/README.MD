@@ -537,9 +537,71 @@ FE test: "renders correctly with { name, email }"   → verifies UI with expecte
 | development-rules.md | Always | YAGNI/KISS/DRY, code quality, pre-commit, git conventions  |
 | stack-rules.md       | Always | Stack patterns, commands, review checklist, test/debug      |
 
-## Required MCPs
+## MCP Setup
 
-| MCP      | Purpose                                | Required    |
-| -------- | -------------------------------------- | ----------- |
-| Notion   | Read tickets, update status/checklists | Yes         |
-| Context7 | Look up library/framework docs         | Recommended |
+### Required MCPs
+
+| MCP      | Purpose                                        | Required    | Stacks  |
+| -------- | ---------------------------------------------- | ----------- | ------- |
+| Notion   | Read tickets, update status, post comments     | Yes         | All     |
+| Figma    | Read designs, extract design tokens, gen code   | Yes         | FE, App |
+| Context7 | Look up library/framework docs                 | Recommended | All     |
+
+### Setup (auto on `pacificwide-claude init`)
+
+`.mcp.json.example` is copied to `.claude/.mcp.json` on first `init`. Contains pre-configured MCPs:
+
+```json
+{
+  "mcpServers": {
+    "figma": { "type": "http", "url": "https://mcp.figma.com/mcp" },
+    "notion": { "type": "http", "url": "https://mcp.notion.com/mcp" }
+  }
+}
+```
+
+**First-time auth (per project):**
+1. Open Claude Code in the project
+2. Type `/mcp` → select `figma` → **Authenticate** → Allow access
+3. Type `/mcp` → select `notion` → **Authenticate** → Allow access
+
+Or add via CLI:
+```bash
+claude mcp add --transport http figma https://mcp.figma.com/mcp
+claude mcp add --transport http notion https://mcp.notion.com/mcp
+```
+
+### Figma MCP in workflow
+
+**When to use:** FE/App tasks with Figma design link in Notion ticket.
+
+```
+  Notion Ticket
+  (has Figma link)
+        │
+        ▼
+  ┌───────────────┐    Figma MCP reads design:
+  │  /plan [ticket]│ ── Extract layout, colors, spacing, components
+  └───────┬───────┘    Plan includes design specs
+        │
+        ▼
+  ┌───────────────┐    Figma MCP during implementation:
+  │  /implement   │ ── get_file: read full design structure
+  └───────┬───────┘    get_code: extract code snippets
+        │              get_styles: extract design tokens
+        ▼
+  ┌───────────────┐
+  │  /review      │ ── Compare impl vs design specs
+  └───────────────┘
+```
+
+**Figma MCP capabilities:**
+- **Read designs:** Extract frames, components, layout, constraints
+- **Design tokens:** Colors, typography, spacing from Figma variables
+- **Code generation:** Get code snippets from selected frames
+- **Live UI capture:** Capture running app UI back to Figma (Claude Code only)
+
+**Tips:**
+- Include Figma frame URL in Notion ticket for direct design reference
+- For cross-stack: FE/App reads design from Figma, BE only reads API spec from Notion
+- Use `ai-multimodal` skill alongside Figma MCP for screenshot comparison

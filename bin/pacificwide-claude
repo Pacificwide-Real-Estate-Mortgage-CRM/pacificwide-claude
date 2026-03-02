@@ -416,6 +416,32 @@ cmd_doctor() {
     pass=$((pass + 1))
   fi
 
+  # 9. .mcp.json exists with required MCPs
+  echo -n "  .claude/.mcp.json... "
+  if [[ -f "${CLAUDE_DIR}/.mcp.json" ]]; then
+    local has_notion=false
+    local has_figma=false
+    grep -q '"notion"' "${CLAUDE_DIR}/.mcp.json" 2>/dev/null && has_notion=true
+    grep -q '"figma"' "${CLAUDE_DIR}/.mcp.json" 2>/dev/null && has_figma=true
+
+    if [[ "$has_notion" == true && "$has_figma" == true ]]; then
+      echo -e "${GREEN}PASS${NC} (notion + figma)"
+      pass=$((pass + 1))
+    elif [[ "$has_notion" == true ]]; then
+      echo -e "${YELLOW}WARN${NC} (notion ✓, figma missing — add figma MCP for design workflow)"
+      fail=$((fail + 1))
+    elif [[ "$has_figma" == true ]]; then
+      echo -e "${YELLOW}WARN${NC} (figma ✓, notion missing — add notion MCP for ticket workflow)"
+      fail=$((fail + 1))
+    else
+      echo -e "${YELLOW}WARN${NC} (no figma or notion MCP configured)"
+      fail=$((fail + 1))
+    fi
+  else
+    echo -e "${YELLOW}WARN${NC} (missing — run ${BOLD}pacificwide-claude init${NC} to create from template)"
+    fail=$((fail + 1))
+  fi
+
   echo ""
   if [[ $fail -eq 0 ]]; then
     success "All checks passed (${pass}/${pass})"
