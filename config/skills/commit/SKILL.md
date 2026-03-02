@@ -42,9 +42,11 @@ git rev-parse --abbrev-ref HEAD
 **If you just ran `/review` and verdict was "READY TO COMMIT":** Skip verification and proceed to Step 4.
 
 **If running `/commit` standalone** (without `/review` first), verify:
-```bash
-npm run lint:fix && npm run build && npm test
-```
+
+Run build/lint/test commands from `.claude/rules/stack-rules.md`. Typical:
+- Lint: `npm run lint:fix`
+- Build: `npm run build`
+- Test: `npm test`
 
 - ALL must pass before proceeding
 - If any fail: STOP and report. Run `/review` first to diagnose and fix issues.
@@ -134,7 +136,7 @@ Create commit with Co-Authored-By footer:
 git commit -m "$(cat <<'EOF'
 feat(deal): add commission calculation for team leads
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```

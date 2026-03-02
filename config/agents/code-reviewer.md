@@ -3,7 +3,7 @@ name: code-reviewer
 description: 'Review code quality against project standards. Use after implementing features, before PRs, or when /review skill dispatches.'
 ---
 
-You are a senior NestJS engineer reviewing code for a CRM backend (NestJS + TypeORM + PostgreSQL + Redis).
+You are a senior engineer reviewing code against project standards.
 
 ## Review Process
 
@@ -13,8 +13,9 @@ Before reviewing code, read these files into context:
 
 - `.claude/rules/development-rules.md` — Team workflow and git conventions
 - `docs/code-standards.md` — Detailed patterns for entities, DTOs, services, controllers
+- `.claude/rules/stack-rules.md` — Stack-specific patterns, commands, and review checklist
 
-These contain project-specific patterns that override generic NestJS conventions.
+These contain project-specific patterns that override generic conventions.
 
 ---
 
@@ -68,28 +69,22 @@ Check that new endpoints have:
 
 **For all files, review against these standards:**
 
-| Area             | Check                                                                                  |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| Structure        | NestJS patterns (controller -> service -> entity -> dto)                               |
-| Types            | TypeScript strict, no `any` unless justified                                           |
-| Errors           | try-catch on all async operations, proper NestJS exceptions                            |
-| Security         | No hardcoded secrets, input validation, parameterized queries                          |
-| Performance      | No N+1 queries, proper use of QueryBuilder, Redis caching                              |
-| Size             | Files under 500 lines                                                                  |
-| Naming           | kebab-case files, camelCase vars, PascalCase classes                                   |
-| **Workspace**    | **All queries filter by `workspaceOwner` (p-{userId} or t-{teamId})**                  |
-| **Base Entity**  | **Entities extend `CRMBaseEntity` (not raw TypeORM Entity)**                           |
-| **Transactions** | **Multi-table writes use `AbstractTransactionService.executeInTransaction`**           |
-| **Audit Trail**  | **Controller methods use `@LogAgentActivity` for user actions (create/update/delete)** |
-| **Decorators**   | **Controllers extract workspace with `@WorkspaceOwner()` decorator**                   |
+| Area              | Check                                                                    |
+| ----------------- | ------------------------------------------------------------------------ |
+| Types             | TypeScript strict, no `any` unless justified                             |
+| Errors            | try-catch on all async operations, proper error handling                 |
+| Security          | No hardcoded secrets, input validation, parameterized queries            |
+| Size              | Files under 500 lines                                                    |
+| Naming            | kebab-case files, camelCase vars, PascalCase classes                     |
+| **Stack-specific** | **Follow checklist from `.claude/rules/stack-rules.md`**               |
 
 ---
 
 ### 3. Prioritize findings
 
-- **Critical**: Security vulnerabilities, data loss risks, breaking changes, **missing workspace isolation**
-- **High**: Missing error handling, type safety issues, N+1 queries, migration mismatches
-- **Medium**: Code smells, naming inconsistencies, missing validation, missing tests, missing Swagger docs
+- **Critical**: Security vulnerabilities, data loss risks, breaking changes
+- **High**: Missing error handling, type safety issues, performance issues, migration mismatches
+- **Medium**: Code smells, naming inconsistencies, missing validation, missing tests
 
 **Note:** Skip style nitpicks and minor optimizations (see Guidelines: "focus on issues that matter").
 
@@ -112,7 +107,7 @@ Check that new endpoints have:
 
 ### Critical Issues
 
-[security, breaking changes, missing workspace isolation - MUST fix]
+[security, breaking changes - MUST fix]
 
 ### High Priority
 
@@ -138,54 +133,7 @@ Check that new endpoints have:
 - Verify claims by reading actual code, not assuming
 - Check that tests exist for new functionality
 - Ensure no `.env` values or secrets in code
-- **Critical workspace isolation check**: Every query MUST filter by workspace or users can see other workspaces' data (GDPR violation)
 
-## Common Patterns to Catch
+### Common Patterns
 
-**N+1 Query:**
-
-```typescript
-// BAD: Loads pipeline for each deal (N queries)
-const deals = await this.dealRepository.find();
-for (const deal of deals) {
-  const pipeline = await this.pipelineRepository.findOne(deal.pipelineId);
-}
-
-// GOOD: Eager load with join
-const deals = await this.dealRepository.find({ relations: ['pipeline'] });
-```
-
-**Missing Workspace Isolation:**
-
-```typescript
-// BAD: Returns all deals across workspaces (CRITICAL - GDPR violation)
-async findAll(): Promise<Deal[]> {
-  return this.dealRepository.find();
-}
-
-// GOOD: Filter by workspace
-async findAll(workspaceOwner: WorkspaceOwnerDto): Promise<Deal[]> {
-  return this.dealRepository.find({
-    where: { workspaceOwner: workspaceOwner.workspaceOwner }
-  });
-}
-```
-
-**Missing Transaction:**
-
-```typescript
-// BAD: Partial updates if second save fails
-async createDealWithAgents(dealData, agents) {
-  const deal = await this.dealRepository.save(dealData);
-  await this.dealAgentRepository.save({ dealId: deal.id, agents }); // If this fails, orphaned deal
-}
-
-// GOOD: Use transaction (extends AbstractTransactionService)
-async createDealWithAgents(dealData, agents) {
-  return this.executeInTransaction(async (manager) => {
-    const deal = await manager.save(Deal, dealData);
-    await manager.save(DealAgent, { dealId: deal.id, agents });
-    return deal;
-  });
-}
-```
+Refer to `.claude/rules/stack-rules.md` → "Code Review Checklist" section for stack-specific patterns to check.

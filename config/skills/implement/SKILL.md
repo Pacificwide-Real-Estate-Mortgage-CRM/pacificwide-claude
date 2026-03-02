@@ -1,11 +1,11 @@
 ---
 name: implement
-description: 'Implement from a plan file or task description. Follows NestJS patterns, runs build + tests. Use: /implement plans/task-name.md'
+description: 'Implement from a plan file or task description. Follows project patterns, runs build + tests. Use: /implement plans/task-name.md'
 ---
 
 # /implement - Feature Implementation
 
-Implement code following team standards and NestJS patterns.
+Implement code following team standards and project patterns.
 
 **Input:** Plan file path or task description via `$ARGUMENTS`
 
@@ -26,53 +26,25 @@ Implement code following team standards and NestJS patterns.
 
 ### Step 2: Read project context and existing code
 
-- Read `docs/code-standards.md` for entity/DTO/service/controller patterns and shared utilities
+- Read `docs/code-standards.md` and `.claude/rules/stack-rules.md` for project patterns
 - Read `docs/codebase-summary.md` for module inventory, auth architecture, and key patterns
-- Identify the closest existing module to use as a reference implementation (default: `src/deal/`)
+- Identify existing code to use as reference implementation
 - Read the files listed in the plan's "New files" and "Modified files" sections BEFORE making changes
 - Check imports, dependencies, and module registration of affected modules
 
 ### Step 3: Implement
 
-Follow the plan's "Implementation order" if specified. Otherwise use this default order:
+Follow the plan's "Implementation order" if specified. Otherwise:
+1. Read `.claude/rules/stack-rules.md` for stack-specific implementation order
+2. If no stack-rules.md, use this default: data layer → business logic → API/UI layer → tests
 
-**Implementation order:**
-
-1. **Migration** — Create/modify entity first, then generate with `npm run migration:generate --name=DescriptiveName` and review the generated SQL. For data migrations or enum changes, create the migration file manually in `migrations/`
-2. **Entity** — TypeORM entity matching migration columns. Extend `CRMBaseEntity`
-3. **DTOs** — Input validation with class-validator decorators. `@ApiProperty`/`@ApiPropertyOptional` on every field
-4. **Service** — Business logic. Extend `AbstractTransactionService` and use `executeInTransaction()` for write operations touching multiple tables. Regular `@Injectable()` for read-only services
-5. **Controller** — Route handling, Swagger decorators (`@ApiTags`, `@ApiOperation`, `@ApiResponse`, `@ApiBearerAuth`), auth guards, permissions
-6. **Module** — Register entity in `TypeOrmModule.forFeature()`, providers, imports, exports
-7. **App module** — Import new module in `app.module.ts` if this is a new module
-8. **Queue/Scheduler** — If applicable, add Bull processor and register in module
-
-**NestJS patterns:**
-
-- Controller: `@UseGuards(AuthGuard, UserPermissionGuard)`, `@Permissions(PermissionEnum.X)`, `@WorkspaceOwner()` decorator to extract workspace context
-- Service: inject repositories with `@InjectRepository(Entity)`, use `@Inject(forwardRef(() => Service))` for circular dependencies
-- Entity: `@PrimaryGeneratedColumn('uuid')`, `{ name: 'snake_case' }` in `@Column` for multi-word columns, `@JoinColumn({ name: 'fk_column' })` for relations
-- DTO: separate Create vs Update DTOs, `@ValidateNested` + `@Type` for nested objects
-- Module: register all providers, imports, exports
-
-**Security:**
-
-- Validate all inputs with DTOs
-- Parameterized queries (no string concatenation in SQL)
-- No hardcoded secrets
-- **Workspace isolation**: All data queries MUST be filtered by workspace. Accept `WorkspaceOwnerDto` from the controller (`@WorkspaceOwner()` decorator) and pass to service queries
-- Use `AuthGuard` + `UserPermissionGuard` on all authenticated controllers
-- Use `@Permissions(PermissionEnum.X)` on controller methods
-- Use `@Public()` only for unauthenticated endpoints
-
-**Activity logging:**
-
-- Add `@UseInterceptors(LogAgentActivityInterceptor)` and `@LogAgentActivity({...})` on write endpoints (create, update, delete) following existing patterns in similar controllers
+**Stack-specific patterns:**
+Follow patterns from `.claude/rules/stack-rules.md`. This includes framework architecture, security patterns, and code conventions.
 
 **Code quality:**
 
 - try-catch on all async operations
-- Proper NestJS exceptions (`NotFoundException`, `BadRequestException`, `ForbiddenException`)
+- Proper error handling with appropriate exception types
 - TypeScript types — no `any` unless justified
 - Files under 500 lines
 - kebab-case file names
@@ -88,11 +60,10 @@ Follow the plan's "Implementation order" if specified. Otherwise use this defaul
 
 ### Step 5: Verify
 
-```bash
-npm run lint:fix  # Fix lint issues
-npm run build     # Verify compilation
-npm test          # Run all tests
-```
+Run the build/lint/test commands from `.claude/rules/stack-rules.md`:
+- Lint fix
+- Build/compile
+- Run tests
 
 - If build fails: read the compiler error, fix the specific issue, rebuild
 - If tests fail: determine if it is a code bug or a test that needs updating for the new behavior, then fix
@@ -121,4 +92,4 @@ Do NOT commit directly. The `/review` skill will run lint, build, tests, and dis
 - Run build after implementation to verify compilation
 - Use `debugger` agent if stuck on a complex bug (cannot resolve after 2 attempts)
 - Use `tester` agent for comprehensive test analysis
-- **If the task cannot be completed in one session**: Ensure all completed items are marked in the plan file, run `npm run build` to verify partial work compiles, and inform the user which items remain. The next `/implement` invocation will resume from the first unchecked item
+- **If the task cannot be completed in one session**: Ensure all completed items are marked in the plan file, run the build command from `.claude/rules/stack-rules.md` to verify partial work compiles, and inform the user which items remain. The next `/implement` invocation will resume from the first unchecked item

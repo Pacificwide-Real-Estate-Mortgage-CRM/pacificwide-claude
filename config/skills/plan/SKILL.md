@@ -75,14 +75,9 @@ Also display the plan in the conversation for immediate review.
 
 [Brief summary: what this feature does, why, key user flows]
 
-## Database changes
+## Schema / data changes (if any)
 
-For each table change, inline the exact field definitions from the spec:
-
-- [ ] **Migration** `YYYYMMDD-description`: [what tables/columns to add or modify]
-  - `column_name` type NULL/NOT NULL default - description
-  - `column_name` type NULL/NOT NULL default - description
-- [ ] **Entity** `src/path/entity.ts`: [create or modify, list fields matching migration]
+- [ ] [migration, model, or schema change with exact field definitions from spec]
 
 ## New files
 
@@ -96,16 +91,11 @@ For each table change, inline the exact field definitions from the spec:
 
 ## Implementation order
 
-1. Database: migration + entity (must be first)
-2. Service: business logic
-3. Controller + DTOs: API endpoints
-4. [Queue/Scheduler/Webhook if applicable]
-5. Register in module + app.module.ts
-6. Tests
+Follow the order from `.claude/rules/stack-rules.md`. List numbered steps specific to this task.
 
-## API changes (if any)
+## API / route changes (if any)
 
-- [ ] `METHOD /website/api/v1/endpoint` - [description, request/response shape, auth required]
+- [ ] `METHOD /path` - [description, request/response shape]
 - [ ] ...
 
 ## Business rules to enforce
@@ -147,11 +137,11 @@ Next: /implement plans/[task-name].md
 - **Inline critical details from the spec**: field names, types, enums, validation rules, constraints. The plan must be implementable without re-reading the full spec
 - When no Notion ticket exists, the plan must be fully self-contained (include task description and acceptance criteria in Context section)
 - Map spec's use cases to concrete implementation tasks
-- Include DB schema changes with exact column definitions
+- Include schema/model changes with exact field definitions when applicable
 - Include key business/permission rules with enough detail to implement
 - Follow `.claude/rules/development-rules.md`
 - DO NOT implement code - only create the plan file
 - DO NOT include code examples, snippets, or pseudocode in the plan. Describe WHAT to do, not HOW to code it
-- Do not create, modify, or scaffold any source files in `src/` or `migrations/`
+- Do not create, modify, or scaffold any source files
 - Plan files should be committed to git on the feature branch. Delete after feature is merged
 - Plan file name should be short and descriptive (kebab-case)

@@ -1,5 +1,7 @@
 # Development Rules
 
+**Stack-specific rules:** Read `.claude/rules/stack-rules.md` for framework patterns, commands, and architecture specific to your project.
+
 **IMPORTANT:** You ALWAYS follow these principles:
 
 1. YAGNI (You Aren't Gonna Need It)
@@ -23,17 +25,6 @@
 - Use composition and abstraction appropriately
 - Maintain single source of truth
 
-## Stack
-
-- **Framework**: NestJS 10 (TypeScript)
-- **ORM**: TypeORM with PostgreSQL
-- **Cache**: Redis (`@liaoliaots/nestjs-redis`)
-- **Queue**: Bull (`@nestjs/bull`)
-- **Auth**: JWT + Passport
-- **Testing**: Jest
-- **Linter**: ESLint + Prettier
-- **API Docs**: Swagger (`@nestjs/swagger`)
-
 ## General
 
 - **File Naming**: kebab-case with descriptive names (e.g., `deal-commission-calculation.service.ts`)
@@ -41,7 +32,7 @@
 - Use `gh` bash command for GitHub operations
 - Use `psql` bash command to query PostgreSQL for debugging
 - Use Context7 MCP for looking up library/framework documentation
-- **[IMPORTANT]** Follow the existing NestJS module patterns in `src/` during implementation
+- **[IMPORTANT]** Follow existing patterns in the codebase
 - **[IMPORTANT]** Implement real code, never mock or simulate
 
 ## Code Quality Guidelines
@@ -62,7 +53,7 @@
 ## Code Implementation
 
 - Write clean, readable, and maintainable code
-- Follow established NestJS module patterns (controller -> service -> entity -> dto)
+- Follow established architectural patterns in your stack
 - Handle edge cases and error scenarios
 - **DO NOT** create new enhanced/v2 files, update existing files directly
 
@@ -80,7 +71,7 @@
 - **Branch**: `type/description` (e.g., `feature/oauth-login`, `fix/deal-calculation`)
 - **Commit types**: feat, fix, docs, refactor, test, ci, chore, perf
 - **Commit format**: `type(scope): description` with Co-Authored-By footer
-- Include `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>` in commit footer
+- Include `Co-Authored-By: Claude <noreply@anthropic.com>` in commit footer
 
 ## Team Workflow
 

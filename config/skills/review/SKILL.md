@@ -31,26 +31,11 @@ If no files match the scope, report: "No changes found in ${ARGUMENTS}" and exit
 
 ### Step 2: Project-specific pre-flight checks
 
-**Migration review (if `migrations/` changed):**
-```bash
-ls -t migrations/*.ts | head -1  # Find latest migration
-```
-Read the migration file and check:
-- [ ] SQL matches entity column changes (compare with changed entity files)
-- [ ] No `DROP COLUMN` without data migration script
-- [ ] Indexes created for all foreign keys
-- [ ] Enum changes use proper TypeORM migration syntax
-
-**Test coverage (if `src/` changed):**
-- For each new `.service.ts`, check if corresponding `.spec.ts` exists
-- If missing, note in review output: "Missing test file: X.spec.ts"
-
-**Swagger completeness (if DTOs or controllers changed):**
-```bash
-grep -L "@ApiProperty" src/changed-module/dtos/*.dto.ts
-```
-- List any DTO files without `@ApiProperty` decorators
-- Check controllers for `@ApiOperation` on new endpoints
+**Stack-specific pre-flight checks:**
+Read `.claude/rules/stack-rules.md` → "Code Review Checklist" and verify:
+- [ ] All checklist items from stack-rules.md are addressed
+- [ ] New code has corresponding tests (check if `.spec.ts` or `.test.ts` exists)
+- [ ] No security issues (input validation, auth, data exposure)
 
 Report pre-flight findings in Step 6 output.
 
@@ -109,9 +94,8 @@ For each issue category:
 ### Step 5: Verify fixes (iteration loop)
 
 After applying fixes from Step 4, verify:
-```bash
-npm run lint:fix && npm run build && npm test
-```
+
+Run build/lint/test commands from `.claude/rules/stack-rules.md`.
 
 **Iteration rules:**
 - **If all pass:** Proceed to Step 6 (Output)
@@ -136,9 +120,9 @@ Print review summary:
 **Scope:** [all changes / filtered to $ARGUMENTS]
 
 **Pre-flight Checks:**
-- Migrations: [PASS / issues found]
-- Test coverage: [X of Y services have tests]
-- Swagger docs: [COMPLETE / missing in: file.dto.ts]
+- Stack checklist: [PASS / issues found]
+- Test coverage: [X of Y files have tests]
+- Security: [PASS / issues found]
 
 **Code Review (from code-reviewer agent):**
 - Critical issues: [count] (all fixed / [N] remaining)
@@ -175,5 +159,5 @@ Otherwise, print the blocking issues and stop.
 - **Agent context:** Provide the full diff to code-reviewer agent (it cannot access uncommitted changes via git commands)
 - **Fix iteration limit:** Max 2 attempts per check type (build/test) before reporting to user
 - **Plan file sync:** Update progress after fixes, maintain single source of truth
-- **Workspace isolation check:** Verify queries filter by `workspaceOwner` (personal or team context)
+- **Stack-specific checks:** Follow `.claude/rules/stack-rules.md` checklist
 - Follow `.claude/rules/development-rules.md`

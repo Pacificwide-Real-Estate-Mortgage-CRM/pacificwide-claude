@@ -45,7 +45,7 @@ If `$ARGUMENTS` is just a description:
 
 ### Step 2: Read project context and locate the bug
 
-- Read `docs/code-standards.md` and `docs/codebase-summary.md` for project context
+- Read `docs/code-standards.md`, `docs/codebase-summary.md`, and `.claude/rules/stack-rules.md` for project context
 - Identify which module/files are likely involved based on the bug description
 - Use Grep to search for relevant error messages, function names, or endpoints mentioned in the bug report
 - Read the suspected files to understand current implementation
@@ -56,29 +56,12 @@ If `$ARGUMENTS` is just a description:
 
 **Attempt to reproduce locally:**
 
-For API bugs:
-```bash
-# Start the application if needed
-npm run start:dev
+**For API bugs:** Use curl or API client to reproduce the request
+**For database bugs:** Query the database directly to check state
+**For UI bugs:** Reproduce in browser/simulator
+**For test failures:** Run the specific failing test
 
-# Use curl or create a test script to reproduce
-curl -X POST http://localhost:3000/website/api/v1/endpoint \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"data": "from bug report"}'
-```
-
-For database-related bugs:
-```bash
-# Check database state
-psql -d dbname -c "SELECT * FROM table WHERE condition"
-```
-
-For unit test failures:
-```bash
-# Run specific test
-npm test -- path/to/file.spec.ts
-```
+Use commands from `.claude/rules/stack-rules.md` for stack-specific tools.
 
 **Document reproduction:**
 - Did you successfully reproduce it? (Yes/No)
@@ -134,11 +117,11 @@ Based on the root cause from Step 4, implement the fix:
 - Follow project patterns (workspace filtering, transactions, error handling)
 
 **Common fix patterns:**
-- Missing null checks: Add `if (!value)` guards
-- Missing workspace filtering: Add `workspaceOwner` to query
-- Race conditions: Use transactions or locks
-- Type errors: Add proper TypeScript types and runtime validation
-- Logic errors: Fix the conditional or calculation
+- Missing null checks: Add guards for nullable values
+- Missing input validation: Add proper validation
+- Logic errors: Fix conditionals or calculations
+- Missing error handling: Add try-catch blocks
+- Stack-specific patterns: See `.claude/rules/stack-rules.md` → "Debug Patterns"
 
 ---
 
@@ -146,11 +129,7 @@ Based on the root cause from Step 4, implement the fix:
 
 **Critical:** Add a test to prevent this bug from reoccurring.
 
-Check if relevant test file exists:
-```bash
-# For src/deal/deal.service.ts, check for:
-ls src/deal/deal.service.spec.ts
-```
+Check if a relevant test file exists for the affected module.
 
 If test file exists, add a new test case:
 - Test name should describe the bug: `it('should handle null workspace owner', ...)`
@@ -164,7 +143,7 @@ If no test file exists, create one following existing patterns in the module.
 describe('Bug fix: [brief description]', () => {
   it('should [expected behavior] when [bug scenario]', async () => {
     // Arrange: set up the buggy scenario
-    // Act: call the method that had the bug
+    // Act: call the method/component that had the bug
     // Assert: verify it now behaves correctly
   });
 });
@@ -174,12 +153,7 @@ describe('Bug fix: [brief description]', () => {
 
 ### Step 7: Verify the fix
 
-Run all checks:
-```bash
-npm run lint:fix  # Fix lint issues
-npm run build     # Verify compilation
-npm test          # Run all tests including new regression test
-```
+Run build/lint/test commands from `.claude/rules/stack-rules.md`.
 
 **Verify the specific fix:**
 - Re-run the reproduction steps from Step 3
