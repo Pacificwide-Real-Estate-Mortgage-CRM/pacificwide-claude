@@ -20,6 +20,7 @@ Fix bugs by reproducing the issue, finding root cause, implementing fix, and pre
 
 If `$ARGUMENTS` contains a Notion link:
 - Use Notion MCP to read the ticket properties and description
+- **Extract and save the ticket `ID` property** (Notion Unique ID, e.g., `RRR-351`) — you will use this for branch naming in Step 4
 - **Read the "Stacks" property** (multi-select: BE, FE, App) to determine scope
 - Look for: bug description, steps to reproduce, expected vs actual behavior, error messages
 - Read any linked documents or related tickets
@@ -104,16 +105,15 @@ If `$ARGUMENTS` is just a description:
 - If already on a fix/hotfix branch for this ticket → skip
 - If on `main` or `master` → create branch
 
-**Branch naming:**
+**Branch naming:** Use the ticket `ID` extracted in Step 1 (e.g., `RRR-351`):
 ```bash
-# Regular bug fix — use Notion Unique ID (e.g., RRR-351)
-git checkout -b fix/RRR-351-{short-slug}
+# Regular bug fix
+git checkout -b fix/{ticket-id}-{short-slug}
+# e.g.: git checkout -b fix/RRR-351-point-not-calculated
 
 # Hotfix (production emergency) — branch from master
-git checkout master && git pull && git checkout -b hotfix/RRR-351-{short-slug}
+git checkout master && git pull && git checkout -b hotfix/{ticket-id}-{short-slug}
 ```
-
-**Extract ticket ID from Notion:** Read the ticket's `ID` property (Unique ID, e.g., `RRR-351`). Use it verbatim as the branch prefix.
 
 **Determine type:**
 - Regular bug → `fix/`

@@ -20,6 +20,7 @@ Plan implementation from a Notion ticket or task description.
 ### Step 1: Read the ticket and spec document
 
 - Use Notion MCP to read the ticket properties and description
+- **Extract and save the ticket `ID` property** (Notion Unique ID, e.g., `RRR-351`) — you will use this for branch naming in Step 5
 - **Read the "Stacks" property** (multi-select: BE, FE, App) to determine scope
 - **Read the linked Document** (the "Document" property on the ticket) - detailed spec with use cases, schema, business rules, acceptance criteria
 - **Images/Diagrams:** If spec mentions diagrams/mockups, ask user to share them before proceeding
@@ -68,10 +69,9 @@ After reading BOTH the spec AND the codebase, check for:
 - If already on a feature branch → skip branch creation
 - If on `main` or `master` → create a new branch
 
-**Branch naming:**
+**Branch naming:** Use the ticket `ID` extracted in Step 1 (e.g., `RRR-351`):
 ```bash
-# From Notion ticket: read the ticket's ID property (Unique ID, e.g., RRR-351)
-git checkout -b feature/RRR-351-{short-slug}
+git checkout -b feature/{ticket-id}-{short-slug}
 
 # Examples:
 git checkout -b feature/RRR-351-user-profile-api     # feature (BE)
@@ -80,7 +80,7 @@ git checkout -b fix/RRR-351-payment-timeout          # bug fix
 git checkout -b chore/upgrade-next-15                # chore (no ticket)
 ```
 
-**Extract ticket ID:** Read the ticket's `ID` property (Notion Unique ID, e.g., `RRR-351`). Use it verbatim — never use the Notion page UUID from the URL.
+> Never use the Notion page UUID from the URL — always use the `ID` property value.
 
 **Determine type from ticket:** feature → `feature/`, bug → `fix/`, hotfix → `hotfix/`, chore → `chore/`
 
