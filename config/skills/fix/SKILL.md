@@ -154,30 +154,25 @@ Use commands from `.claude/rules/stack-rules.md` for stack-specific tools.
 
 ### Step 7: Debug and find root cause
 
-Use the `debugger` agent to investigate:
+**Investigate directly** using Grep and Read — do NOT spawn sub-agents for routine bugs:
 
-```markdown
-Debug the following issue:
+1. Search for the relevant function/endpoint from Step 5:
+   ```bash
+   # Search by function name, endpoint, or error message
+   grep -rn "functionName\|/endpoint\|ErrorMessage" src/
+   ```
+2. Read the affected files (already identified in Step 5)
+3. Trace the logic: follow the data flow from input → processing → output
+4. Identify root cause: logic error, missing validation, wrong query, race condition, etc.
 
-**Bug:** [description from ticket]
+**Only spawn `debugger` agent if:**
+- You've read the relevant files and still cannot identify root cause
+- The bug involves complex multi-service interaction
+- There are cryptic stack traces requiring deep analysis
 
-**Reproduction steps:** [what you did in Step 6]
-
-**Observed behavior:** [actual result]
-
-**Expected behavior:** [from ticket]
-
-**Files involved:** [list from Step 5]
-
-**Error messages/logs:** [if any]
-
-Find the root cause and explain what is causing the bug.
-```
-
-Wait for the debugger agent to return:
-- Root cause explanation
+**Document root cause:**
 - Affected code location (file:line)
-- Why the bug occurs (logic error, missing validation, race condition, etc.)
+- Why the bug occurs
 
 ---
 
