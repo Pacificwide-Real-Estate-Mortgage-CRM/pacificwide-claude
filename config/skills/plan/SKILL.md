@@ -42,14 +42,18 @@ Plan implementation from a Notion ticket or task description.
 - If another stack already posted an **API contract** → reference it in your plan
 - If no API contract yet and current stack is BE → you will create one in Step 5
 
-### Step 3: Analyze the codebase
+### Step 3: Analyze the codebase using docs
 
-- Read `docs/code-standards.md` and `docs/codebase-summary.md` for project context
-- Read relevant existing files that will be affected
-- Understand current patterns and architecture
-- Identify which modules/files need changes
+**3a — Read the index first (no scouting):**
+- Read `docs/module-index.md` → identify which modules/files will be affected
+- Read `docs/code-standards.md` and `docs/system-architecture.md` for patterns and architecture
+
+**3b — Read targeted files:**
+- Use file paths from `module-index.md` to open only the files relevant to this feature
 - Check for existing similar implementations as reference
-- **Trace dependencies**: check what imports/consumes the files you plan to change
+- Trace dependencies: check what imports/consumes the files you plan to change
+
+**If `module-index.md` doesn't exist:** run `/docs init` first, or fall back to targeted Grep. Broad codebase scouting is a last resort.
 
 ### Step 4: Flag unclear or missing details
 

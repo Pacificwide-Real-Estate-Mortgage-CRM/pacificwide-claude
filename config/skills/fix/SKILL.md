@@ -123,12 +123,17 @@ If no ticket ID available, use descriptive slug: `fix/payment-timeout`
 
 ---
 
-### Step 5: Read project context and locate the bug
+### Step 5: Locate the bug using docs
 
-- Read `docs/code-standards.md`, `docs/codebase-summary.md`, and `.claude/rules/stack-rules.md` for project context
-- Identify which module/files are likely involved based on the bug description
-- Use Grep to search for relevant error messages, function names, or endpoints mentioned in the bug report
-- Read the suspected files to understand current implementation
+**5a — Read the index first (no scouting):**
+- Read `docs/module-index.md` → find which Service/Controller/Entity is relevant to the bug
+- Read `docs/code-standards.md` and `.claude/rules/stack-rules.md` for context
+
+**5b — Read targeted files directly:**
+- Use file paths from `module-index.md` to open exact files — no broad Grep exploration
+- If `module-index.md` doesn't exist or doesn't cover the area: use Grep with specific terms (function name, endpoint, error message) as fallback
+
+**Goal: 2-3 targeted reads, not broad scouting. Run `/docs init` if module-index.md is missing.**
 
 ---
 

@@ -50,6 +50,42 @@ Keep under 150 lines. Scannable, actionable. No duplication with stack-rules.md.
 
 Keep under 200 lines.
 
+#### `docs/module-index.md`
+
+**Purpose:** Quick-reference index for AI skills to locate code without scouting. Scan `src/` deeply to extract:
+
+- **Services** — class name → file path → key public methods
+- **Controllers** — class name → file path → HTTP endpoints it handles
+- **Entities/Models** — class name → file path → key fields
+- **DTOs** — grouped by module, file paths listed
+- **Enums/Constants** — name → file path
+
+**Format:**
+```markdown
+## Services
+| Class | File | Key Methods |
+|-------|------|-------------|
+| DealService | src/deal/deal.service.ts | create, findAll, close, calculateCommission |
+| AgentService | src/agent/agent.service.ts | findById, updatePoints |
+
+## Controllers
+| Class | File | Endpoints |
+|-------|------|-----------|
+| DealController | src/deal/deal.controller.ts | POST /deals, GET /deals/:id, PATCH /deals/:id/close |
+
+## Entities
+| Entity | File | Key Fields |
+|--------|------|-----------|
+| Deal | src/deal/entities/deal.entity.ts | id, status, closedAt, agents, commissions |
+
+## Enums
+| Enum | File | Values |
+|------|------|--------|
+| DealStatus | src/deal/enums/deal-status.enum.ts | OPEN, CLOSED, CANCELLED |
+```
+
+Keep under 250 lines. Scan ALL files in src/ — this is the one file that replaces codebase scouting.
+
 #### `docs/system-architecture.md`
 
 - **Architecture diagram** (ASCII or Mermaid) — layers and data flow
@@ -103,8 +139,10 @@ Based on what changed, update the corresponding sections:
 
 | Change type | Update target |
 |-------------|--------------|
+| New service/controller | `module-index.md` — add row to Services/Controllers table |
+| New entity/model | `module-index.md` — add row to Entities; `codebase-summary.md` — add to key entities; `system-architecture.md` — update DB overview |
+| New enum/DTO | `module-index.md` — add to Enums section |
 | New module/feature added | `codebase-summary.md` — add to module map and feature inventory |
-| New entity/model | `codebase-summary.md` — add to key entities; `system-architecture.md` — update DB overview |
 | New pattern established | `code-standards.md` — add to patterns section |
 | New integration | `codebase-summary.md` — add to external integrations |
 | New env variable | `deployment-guide.md` — add to environment variables |
