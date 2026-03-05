@@ -216,7 +216,11 @@ gh pr create --title "[HOTFIX] Fix token expiry vulnerability" --body "..." --la
 **Read plan file or ticket link** to find the Notion ticket.
 
 **Always (if ticket exists):**
-1. Add commit comment:
+1. Append PR URL to the **`PR Links`** property (rich text field — new line per PR, do not overwrite existing content):
+   ```
+   {stack}: {pr_url}
+   ```
+2. Add commit comment:
    ```
    ✅ {stack} committed: {short_hash}
    Branch: {branch_name}
