@@ -20,7 +20,7 @@ Fix bugs by reproducing the issue, finding root cause, implementing fix, and pre
 
 If `$ARGUMENTS` contains a Notion link:
 - Use Notion MCP to read the ticket properties and description
-- **Extract and save the ticket `ID` property** (Notion Unique ID, e.g., `RRR-351`) — you will use this for branch naming in Step 4
+- **Extract and save the ticket ID** — read `userDefined:ID` property from Notion response (e.g., `CRM-1279`) — you will use this for branch naming in Step 4
 - **Read the "Stacks" property** (multi-select: BE, FE, App) to determine scope
 - Look for: bug description, steps to reproduce, expected vs actual behavior, error messages
 - Read any linked documents or related tickets
@@ -49,10 +49,11 @@ If `$ARGUMENTS` is just a description:
 
 **Detect current stack:** Read `package.json` to determine current repo's stack (nestjs/nextjs/react-native).
 
-**Determine scope from Notion "Stacks" property:**
-- **Single-stack** (Stacks = [BE] or [FE]): standard fix in current repo
-- **Cross-stack** (Stacks = [BE, FE] or [BE, FE, App]): determine root cause stack first
-- **No Stacks property**: infer from bug description, or ask user
+**Determine scope from ticket status fields:**
+- **Cross-stack**: ticket has BOTH `BE Status` AND `FE Status` properties → determine root cause stack first
+- **Single-stack BE**: ticket has `BE Status` only (no `FE Status`)
+- **Single-stack FE**: ticket has `FE Status` only (no `BE Status`)
+- **Neither field**: infer from bug description, or ask user
 
 **For cross-stack bugs, also check Notion comments:**
 - If another stack already posted a fix or root cause analysis → reference it

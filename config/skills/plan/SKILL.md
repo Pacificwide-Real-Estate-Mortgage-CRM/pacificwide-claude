@@ -20,7 +20,7 @@ Plan implementation from a Notion ticket or task description.
 ### Step 1: Read the ticket and spec document
 
 - Use Notion MCP to read the ticket properties and description
-- **Extract and save the ticket `ID` property** (Notion Unique ID, e.g., `RRR-351`) — you will use this for branch naming in Step 5
+- **Extract and save the ticket ID** — read `userDefined:ID` property from Notion response (e.g., `CRM-1279`) — you will use this for branch naming in Step 5
 - **Read the "Stacks" property** (multi-select: BE, FE, App) to determine scope
 - **Read the linked Document** (the "Document" property on the ticket) - detailed spec with use cases, schema, business rules, acceptance criteria
 - **Images/Diagrams:** If spec mentions diagrams/mockups, ask user to share them before proceeding
@@ -33,10 +33,11 @@ Plan implementation from a Notion ticket or task description.
 
 **Detect current stack:** Read `package.json` to determine current repo's stack (nestjs/nextjs/react-native).
 
-**Determine scope from Notion "Stacks" property:**
-- **Single-stack** (Stacks = [BE] or [FE]): standard plan for current repo
-- **Cross-stack** (Stacks = [BE, FE] or [BE, FE, App]): create stack-scoped plan
-- **No Stacks property**: infer from ticket description, or ask user
+**Determine scope from ticket status fields:**
+- **Cross-stack**: ticket has BOTH `BE Status` AND `FE Status` properties → each stack plans and implements separately
+- **Single-stack BE**: ticket has `BE Status` only (no `FE Status`)
+- **Single-stack FE**: ticket has `FE Status` only (no `BE Status`)
+- **Neither field**: infer from ticket description, or ask user
 
 **For cross-stack tasks, also check Notion comments:**
 - If another stack already posted an **API contract** → reference it in your plan
