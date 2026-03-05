@@ -222,18 +222,21 @@ gh pr create --title "[HOTFIX] Fix token expiry vulnerability" --body "..." --la
    Branch: {branch_name}
    PR: {pr_url}
    ```
-2. Update the **stack-specific status** property only (e.g., `BE Status` → "Review", `FE Status` → "Review")
-   - **Do NOT update the main `Status` field** — that is managed manually by the team
-   - If the stack-specific status property does not exist on the ticket: skip, report to user
 
-**For cross-stack tasks:**
-- Update only the current stack's status property (e.g., BE commits → update `BE Status` only)
+**Single-stack task** (Stacks = [BE] only OR [FE] only):
+- Update main `Status` → **"Ready To Review"**
+- Update stack-specific status (e.g., `BE Status` → "Ready To Review") if the property exists
+
+**Cross-stack task** (Stacks = [BE, FE] or more):
+- Update only the current stack's status property (e.g., BE commits → `BE Status` → "Ready To Review")
+- **Do NOT update main `Status`** — only update after ALL stacks are committed
 - Add comment with remaining stacks:
   ```
   ✅ {stack} committed: {short_hash}
   PR: {pr_url}
   ⏳ Waiting for: {remaining_stacks}
   ```
+- If current stack is the **last** stack: update main `Status` → **"Ready To Review"**
 
 If no ticket link, skip this step.
 
