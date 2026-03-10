@@ -213,7 +213,11 @@ gh pr create --title "[HOTFIX] Fix token expiry vulnerability" --body "..." --la
 
 ### Step 8: Update Notion ticket
 
-**Read plan file or ticket link** to find the Notion ticket.
+**Find the Notion ticket** using this priority:
+1. **Notion URL in plan file** — look for `https://notion.so/...` or `https://*.notion.site/...` in the `**Ticket:**` field
+2. **Ticket ID in plan file** — if only an ID like `CRM-1279` or `RRR-351` is found, use Notion MCP `notion-search` to find it: `query: "CRM-1279"`, then pick the matching result
+3. **Ticket ID in branch name** — if plan has no ticket info, extract ID from branch name (e.g., `fix/CRM-1279-slug` → `CRM-1279`) and search Notion
+4. **Skip** — if no ticket ID or URL found anywhere, skip this step
 
 **Always (if ticket exists):**
 1. Append PR URL to the **`PR Links`** property (rich text field — new line per PR, do not overwrite existing content):
@@ -243,7 +247,7 @@ gh pr create --title "[HOTFIX] Fix token expiry vulnerability" --body "..." --la
     ⏳ Waiting for: {other_stack}
     ```
 
-If no ticket link, skip this step.
+If no ticket ID or URL found anywhere, skip this step.
 
 ---
 
