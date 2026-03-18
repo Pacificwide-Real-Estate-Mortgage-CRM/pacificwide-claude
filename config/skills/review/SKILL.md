@@ -34,8 +34,12 @@ If no files match the scope, report: "No changes found in ${ARGUMENTS}" and exit
 **Stack-specific pre-flight checks:**
 Read `.claude/rules/stack-rules.md` → "Code Review Checklist" and verify:
 - [ ] All checklist items from stack-rules.md are addressed
-- [ ] New code has corresponding tests (check if `.spec.ts` or `.test.ts` exists)
+- [ ] **Every changed file has a corresponding test** — check `__tests__/*.test.ts(x)` or `*.spec.ts` exists. Missing test = **Critical** issue, blocks READY TO COMMIT verdict
 - [ ] No security issues (input validation, auth, data exposure)
+
+**Frontend-specific checks** (for `.tsx`, `.jsx`, React components):
+- [ ] **No inline logic in view files** — data transformations, filtering, formatting, calculations must be extracted to `utils/` or custom hooks, NOT inline in JSX. Flag as **High** if violated
+- [ ] React components: snapshot test minimum in `__tests__/[ComponentName].snapshot.test.tsx`
 
 Report pre-flight findings in Step 6 output.
 

@@ -206,18 +206,21 @@ Based on the root cause from Step 7, implement the fix:
 
 ---
 
-### Step 9: Write regression test
+### Step 9: Write unit tests
 
-**Critical:** Add a test to prevent this bug from reoccurring.
+**Critical:** Write tests for ALL changed files, not just a regression test.
 
-Check if a relevant test file exists for the affected module.
+**Regression test (every fix):**
+- If test file exists: add new test case reproducing the buggy scenario
+  - Name: `it('should handle null workspace owner', ...)`
+  - Assert expected (correct) behavior
+- If no test file: create one following existing patterns in the module
 
-If test file exists, add a new test case:
-- Test name should describe the bug: `it('should handle null workspace owner', ...)`
-- Test should reproduce the buggy scenario
-- Test should assert the expected (correct) behavior
-
-If no test file exists, create one following existing patterns in the module.
+**Unit tests for every changed file:**
+- Every file modified in Step 8 → must have a corresponding test file
+- Backend: `*.spec.ts` in same directory or `__tests__/` folder
+- Frontend React components: `__tests__/[ComponentName].snapshot.test.tsx` minimum + behavior tests for changed logic
+- If changing a utility function: update/add unit test covering the function's cases
 
 ---
 

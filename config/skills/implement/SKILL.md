@@ -50,13 +50,19 @@ Follow patterns from `.claude/rules/stack-rules.md`. This includes framework arc
 - kebab-case file names
 - **Save progress incrementally**: After completing each checklist item from the plan, immediately mark it `[x]` in the plan file. Do NOT wait until the end
 
-### Step 4: Write tests
+### Step 4: Write tests (MANDATORY — never skip)
+
+**Rule: every file created or modified in Step 3 MUST have a corresponding unit test.**
 
 - Check if the plan includes a "Tests" section — follow it
 - For new services: write unit tests covering key business logic, edge cases, and error paths
 - For new controllers: write tests covering endpoint routing and input validation
+- **For React components (`.tsx`):** create `__tests__/[ComponentName].snapshot.test.tsx` minimum; add behavior tests for any logic in the component
+- **For utility/helper functions:** unit test covering all cases and edge cases
 - Use the `tester` agent to analyze what needs test coverage if unsure
-- Follow existing test patterns in the codebase (check `*.spec.ts` files in similar modules)
+- Follow existing test patterns in the codebase (check `*.spec.ts` or `__tests__/` in similar modules)
+
+**Frontend additional rule:** If any `.tsx` component has inline logic (data transformation, filtering, formatting) — extract it to a utility function first, then test both the utility and the component.
 
 ### Step 5: Verify
 
