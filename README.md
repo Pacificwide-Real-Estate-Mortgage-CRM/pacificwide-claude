@@ -153,16 +153,30 @@ config/
 
 ## MCP servers
 
-Pre-configured via `.mcp.json.example` (copied to `.claude/.mcp.json` on first `init`):
+Three MCP servers are required. They are registered automatically on `init`, or re-add at any time:
 
-| MCP    | URL                          | Purpose                              |
-| ------ | ---------------------------- | ------------------------------------ |
-| Figma  | `https://mcp.figma.com/mcp`  | Read designs, extract tokens, gen code |
-| Notion | `https://mcp.notion.com/mcp` | Read tickets, update status, comments |
+```bash
+pacificwide-claude mcp
+```
 
-**First-time auth:** Open Claude Code → `/mcp` → select server → Authenticate → Allow access.
+| MCP      | Type | Purpose                                |
+| -------- | ---- | -------------------------------------- |
+| Figma    | HTTP | Read designs, extract tokens, gen code |
+| Notion   | HTTP | Read tickets, update status, comments  |
+| Context7 | npx  | Library/framework docs lookup          |
 
-Or add manually: `claude mcp add --transport http figma https://mcp.figma.com/mcp`
+Skips servers already registered. Safe to run multiple times.
+
+**First-time auth (Figma + Notion):** Open Claude Code → `/mcp` → select server → Authenticate → Allow access. Context7 connects automatically — no auth needed.
+
+**Add manually:**
+```bash
+claude mcp add --transport http figma https://mcp.figma.com/mcp
+claude mcp add --transport http notion https://mcp.notion.com/mcp
+claude mcp add context7 -- npx -y @upstash/context7-mcp
+```
+
+`.mcp.json` is created at the **project root** on `init` (Claude Code reads from there, not `.claude/`).
 
 ## Protected files
 
